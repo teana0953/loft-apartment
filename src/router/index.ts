@@ -7,9 +7,18 @@ Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
     {
+        name: ERouterName.login,
+        path: ERouterUrl.login,
+        component: () => import(/* webpackChunkName: "chunk-login" */ '../views/Login.vue'),
+    },
+    {
+        name: ERouterName.home,
         path: ERouterUrl.home,
         redirect: ERouterUrl.friends,
-        component: Home,
+        component: () => import(/* webpackChunkName: "chunk-home" */ '../views/home/Home.vue'),
+        meta: {
+            loginRequired: true,
+        },
         children: [
             {
                 path: ERouterUrl.friends,
@@ -22,14 +31,14 @@ const routes: Array<RouteConfig> = [
                 path: ERouterUrl.groups,
                 name: ERouterName.groups,
                 components: {
-                    default: () => import(/* webpackChunkName: "chunk-friends" */ '../views/home/group/Groups.vue'),
+                    default: () => import(/* webpackChunkName: "chunk-groups" */ '../views/home/group/Groups.vue'),
                 },
             },
             {
                 path: ERouterUrl.activity,
                 name: ERouterName.activity,
                 components: {
-                    default: () => import(/* webpackChunkName: "chunk-friends" */ '../views/home/activity/Activity.vue'),
+                    default: () => import(/* webpackChunkName: "chunk-activity" */ '../views/home/activity/Activity.vue'),
                 },
             },
         ],
@@ -37,7 +46,7 @@ const routes: Array<RouteConfig> = [
     {
         path: ERouterUrl.settings,
         name: ERouterName.settings,
-        component: () => import(/* webpackChunkName: "chunk-activity" */ '../views/settings/Settings.vue'),
+        component: () => import(/* webpackChunkName: "chunk-settings" */ '../views/settings/Settings.vue'),
     },
     {
         path: '*',
@@ -49,6 +58,16 @@ const router = new VueRouter({
     mode: 'history',
     base: process.env.BASE_URL,
     routes,
+});
+
+router.beforeEach((to, from, next) => {
+    // let isHomeChild: boolean = to.matched[0].name === ERouterName.home;
+    // if (isHomeChild && to.name !== ERouterName.login) {
+    //     console.log('!');
+    //     return next({ path: ERouterUrl.login });
+    // }
+
+    next();
 });
 
 export default router;

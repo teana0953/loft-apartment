@@ -1,4 +1,7 @@
 export enum ERouterName {
+    login = 'login',
+    home = 'home',
+
     friends = 'friends',
     addFriends = 'addFriends',
     friendDetail = 'friendDetail',
@@ -15,6 +18,7 @@ export enum ERouterName {
 }
 
 export enum ERouterUrl {
+    login = '/login',
     home = '/home',
 
     friends = '/friends',
