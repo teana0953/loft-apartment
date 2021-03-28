@@ -1,0 +1,1 @@
+export * as IStoreModel from './_index';
