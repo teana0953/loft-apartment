@@ -8,12 +8,23 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import HelloWorld from './components/HelloWorld.vue';
+import { Action, Getter, namespace } from 'vuex-class';
+import { IUser } from './store/modules/user';
 
-@Component({
-    components: {
-        HelloWorld,
-    },
-})
-export default class App extends Vue {}
+const userModule = namespace('../store/modules/user');
+
+@Component({})
+export default class App extends Vue {
+    @Action('setUser')
+    setUser: (user: IUser.IUser) => void;
+
+    mounted() {
+        this.setUser({
+            id: '1',
+            name: 'ssss',
+            email: 'sss@dd',
+            role: 'user',
+        });
+    }
+}
 </script>

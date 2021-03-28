@@ -14,8 +14,8 @@
                     size="64"
                 ></v-avatar>
 
-                <div>Tina Liang</div>
-                <div>john@vuetifyjs.com</div>
+                <div>{{ user.name }}</div>
+                <div>{{ user.email }}</div>
             </v-sheet>
 
             <v-divider></v-divider>
@@ -81,12 +81,15 @@ import { concatMap } from 'rxjs/operators';
 import { IStoreModel } from '@/store/models';
 import { ServiceWorkerService } from '@/helper';
 import { ERouterUrl } from '@/router/model';
+import { IUser } from '@/store/modules/user/models';
 
 @Component({
     components: {},
 })
 export default class Home extends Vue {
     private drawer: boolean = !this.$vuetify.breakpoint.mobile;
+
+    private user: IUser = this.$store.getters.user;
 
     // tab
     private tabSelected: number = 0;

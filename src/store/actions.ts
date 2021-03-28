@@ -1,5 +1,5 @@
 import { ActionMethod } from 'vuex';
-import { EAction } from './modules/service-worker/models';
+import { EAction } from './modules/user/models';
 import { register } from 'register-service-worker';
 
 export const registerServiceWorker: ActionMethod = async ({ commit }) => {

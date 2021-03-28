@@ -5,14 +5,14 @@ import Vuex from 'vuex';
 
 import * as actions from './actions';
 
-import serviceWorker from './modules/service-worker';
+import user from './modules/user';
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     actions,
     modules: {
-        serviceWorker,
+        user,
     },
 });
 

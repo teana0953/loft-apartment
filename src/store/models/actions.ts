@@ -1,3 +1,3 @@
 export enum EAction {
-    registerServiceWorker = 'registerServiceWorker',
+    getUser = 'getUser',
 }
