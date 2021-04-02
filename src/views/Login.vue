@@ -1,5 +1,5 @@
 <template>
-    <v-app id="inspire">
+    <v-app>
         <v-main>
             <v-container
                 fluid
@@ -21,33 +21,52 @@
                             >
                                 <v-toolbar-title>Loft Apartment</v-toolbar-title>
                             </v-toolbar>
-                            <v-card-text>
-                                <v-form class="d-flex justify-center login__form">
-                                    Please Sign in with:
-                                    <div id="google-signin"></div>
-                                    <!-- <v-text-field
-                                        prepend-icon="mdi-account"
-                                        name="login"
-                                        label="xxx@mail.com"
-                                        type="text"
-                                    ></v-text-field>
-                                    <v-text-field
-                                        id="password"
-                                        prepend-icon="mdi-lock"
-                                        name="password"
-                                        label="Password"
-                                        type="password"
-                                    ></v-text-field> -->
-                                </v-form>
-                            </v-card-text>
-                            <!-- <v-card-actions>
-                                <v-spacer></v-spacer>
-                                <v-btn
-                                    color="primary"
-                                    to="/"
-                                >Login</v-btn>
-                                <div id="google-signin"></div>
-                            </v-card-actions> -->
+
+                            <validation-observer v-slot="{ invalid }">
+                                <form @submit.prevent="login">
+                                    <v-card-text>
+                                        Please Sign in with:
+                                        <validation-provider
+                                            v-slot="{ errors }"
+                                            name="email"
+                                            rules="required|email"
+                                        >
+                                            <v-text-field
+                                                autofocus
+                                                v-model="email"
+                                                prepend-icon="mdi-account"
+                                                label="Email"
+                                                :error-messages="errors"
+                                            ></v-text-field>
+                                        </validation-provider>
+
+                                        <validation-provider
+                                            v-slot="{errors}"
+                                            name="password"
+                                            rules="required"
+                                        >
+                                            <v-text-field
+                                                v-model="password"
+                                                prepend-icon="mdi-lock"
+                                                label="Password"
+                                                type="password"
+                                                :error-messages="errors"
+                                            ></v-text-field>
+                                        </validation-provider>
+                                    </v-card-text>
+                                    <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn
+                                            color="primary"
+                                            type="submit"
+                                            :disabled="invalid"
+                                        >Login</v-btn>
+                                        <span class="ml-2 mr-2">or</span>
+                                        <div id="google-signin"></div>
+                                    </v-card-actions>
+                                </form>
+                            </validation-observer>
+
                         </v-card>
                     </v-flex>
                 </v-layout>
@@ -63,16 +82,62 @@ import { Component, Vue } from 'vue-property-decorator';
 import { Action, Getter, namespace } from 'vuex-class';
 import { IUser } from '@/store/modules/user';
 import { LocalStorageHelper, LocalStorageService } from '@/helper';
+import { required, digits, email } from 'vee-validate/dist/rules';
+import { extend, ValidationObserver, ValidationProvider, setInteractionMode } from 'vee-validate';
 
 @Component({
-    components: {},
+    components: {
+        ValidationProvider,
+        ValidationObserver,
+    },
 })
 export default class Settings extends Vue {
     @Action('setUser')
     setUser: (user: IUser.IUser) => void;
 
+    private email: string = '';
+    private password: string = '';
+
+    created() {
+        // validate-related
+        extend('required', {
+            ...required,
+            message: '{_field_} can not be empty',
+        });
+        extend('email', {
+            ...email,
+            message: 'email format invalid',
+        });
+    }
+
     mounted() {
         (window as any).gapi.load('auth2', this.initSignInV2);
+    }
+
+    private async login() {
+        let result = await Server.post('/login', {
+            email: this.email,
+            password: this.password,
+        });
+
+        let user: IUser.IUser = result.data.data;
+        this.loginSuccess(user);
+    }
+
+    private loginSuccess(user: IUser.IUser) {
+        user = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            photoUrl: !!user.photoUrl ? `${baseUrl}/${user.photoUrl}` : undefined,
+        };
+
+        this.setUser(user);
+
+        LocalStorageService.setItem('user', user);
+
+        this.$router.push(ERouterUrl.home);
     }
 
     private initSignInV2() {
@@ -89,9 +154,9 @@ export default class Settings extends Vue {
     private renderButton() {
         (window as any).gapi.signin2.render('google-signin', {
             scope: 'profile email',
-            width: 240,
-            height: 50,
-            longtitle: true,
+            width: 120,
+            height: 36,
+            longtitle: false,
             theme: 'dark',
             onfailure: this.onFailure,
         });
@@ -99,7 +164,7 @@ export default class Settings extends Vue {
         (window as any).auth2.attachClickHandler(document.getElementById('google-signin'), {}, this.onSignIn);
     }
 
-    public async onSignIn(googleUser: any) {
+    private async onSignIn(googleUser: any) {
         let id_token = googleUser.getAuthResponse().id_token;
         let email = googleUser.getBasicProfile().getEmail();
         console.log('token: ' + id_token); // Do not send to your backend! Use an ID token instead.
@@ -111,19 +176,7 @@ export default class Settings extends Vue {
         });
 
         let user: IUser.IUser = result.data.data;
-        user = {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            photoUrl: !!user.photoUrl ? `${baseUrl}/${user.photoUrl}`: undefined
-        }
-
-        this.setUser(user);
-
-        LocalStorageService.setItem('user', user)
-
-        this.$router.push(ERouterUrl.home);
+        this.loginSuccess(user);
     }
 
     private onFailure(error: any) {
@@ -133,16 +186,4 @@ export default class Settings extends Vue {
 </script>
 
 <style lang="scss" scoped>
-@import '../sass/main';
-
-.login {
-    &__form {
-        height: 10rem;
-    }
-}
-
-#google-signin {
-    position: absolute;
-    top: 50%;
-}
 </style>
