@@ -12,7 +12,12 @@
                     class="mb-4"
                     color="grey darken-1"
                     size="64"
-                ></v-avatar>
+                >
+                    <img
+                        :src="user.photoUrl"
+                        alt="user-photo"
+                    >
+                </v-avatar>
 
                 <div>{{ user.name }}</div>
                 <div>{{ user.email }}</div>

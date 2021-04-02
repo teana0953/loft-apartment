@@ -58,7 +58,7 @@
 
 <script lang="ts">
 import { ERouterUrl } from '@/router/model';
-import { Server } from '../server';
+import { Server, baseUrl } from '../server';
 import { Component, Vue } from 'vue-property-decorator';
 import { Action, Getter, namespace } from 'vuex-class';
 import { IUser } from '@/store/modules/user';
@@ -116,6 +116,7 @@ export default class Settings extends Vue {
             name: user.name,
             email: user.email,
             role: user.role,
+            photoUrl: !!user.photoUrl ? `${baseUrl}/${user.photoUrl}`: undefined
         }
 
         this.setUser(user);
