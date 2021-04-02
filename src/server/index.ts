@@ -1,6 +1,6 @@
 import Axios from 'axios';
 
-let developmentUrl = `http://172.22.28.204:5000`;
+let developmentUrl = `http://localhost:50000/api/v1`;
 
 let productionUrl = 'https://pwa-demo0311.herokuapp.com';
 
