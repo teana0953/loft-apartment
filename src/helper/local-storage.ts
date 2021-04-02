@@ -1,6 +1,7 @@
 enum ELocalStorageKeys {
     isNotificationOn = 'isNotificationOn',
     subscriptionId = 'subscriptionId',
+    user = 'user'
 }
 
 export type TLocalStorageKeys = keyof typeof ELocalStorageKeys;

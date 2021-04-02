@@ -9,6 +9,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import { Action, Getter, namespace } from 'vuex-class';
+import { LocalStorageService } from './helper';
 import { IUser } from './store/modules/user';
 
 const userModule = namespace('../store/modules/user');
@@ -19,12 +20,10 @@ export default class App extends Vue {
     setUser: (user: IUser.IUser) => void;
 
     mounted() {
-        this.setUser({
-            id: '1',
-            name: 'ssss',
-            email: 'sss@dd',
-            role: 'user',
-        });
+        let user = LocalStorageService.getItem('user');
+        if (user) {
+            this.setUser(user);
+        }
     }
 }
 </script>

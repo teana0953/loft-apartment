@@ -12,7 +12,12 @@
                     class="mb-4"
                     color="grey darken-1"
                     size="64"
-                ></v-avatar>
+                >
+                    <img
+                        :src="user.photoUrl"
+                        alt="user-photo"
+                    >
+                </v-avatar>
 
                 <div>{{ user.name }}</div>
                 <div>{{ user.email }}</div>
@@ -79,9 +84,10 @@ import { Component, Vue } from 'vue-property-decorator';
 import DataCenter from '../../store/data-center';
 import { concatMap } from 'rxjs/operators';
 import { IStoreModel } from '@/store/models';
-import { ServiceWorkerService } from '@/helper';
+import { LocalStorageService, ServiceWorkerService } from '@/helper';
 import { ERouterUrl } from '@/router/model';
 import { IUser } from '@/store/modules/user/models';
+import { Server } from '@/server';
 
 @Component({
     components: {},
@@ -127,7 +133,20 @@ export default class Home extends Vue {
         },
     ];
 
-    listItemClick(event, item) {
+    async listItemClick(event, item) {
+        if (item.text === 'Log out') {
+            try {
+                await Server.get('/logout');
+            } catch (error) {
+                console.log('logout error', error);
+            }
+
+            LocalStorageService.removeItem('user');
+            this.$router.push(ERouterUrl.login);
+
+            return;
+        }
+
         if (item?.url) {
             let isSameUrl = this.$router.currentRoute.path === item.url;
             if (!isSameUrl) {

@@ -6,7 +6,7 @@ const state: IUser = {
     name: "",
     email: "",
     role: "",
-    photo: ""
+    photoUrl: ""
 };
 
 const mutations: MutationTree<IUser> = {
@@ -14,7 +14,7 @@ const mutations: MutationTree<IUser> = {
         state.id = user.id;
         state.name = user.name;
         state.email = user.email;
-        state.photo = user.photo;
+        state.photoUrl = user.photoUrl;
         state.role = user.role;
     },
 };
@@ -31,7 +31,7 @@ const getters = {
             id: state.id,
             name: state.name,
             email: state.email,
-            photo: state.photo,
+            photoUrl: state.photoUrl,
             role: state.role
         }
     }

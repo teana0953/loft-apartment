@@ -1,7 +1,9 @@
+import { Server } from '../server';
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
 import Home from '../views/home/Home.vue';
 import { ERouterName, ERouterUrl } from './model';
+import { LocalStorageService } from '@/helper';
 
 Vue.use(VueRouter);
 
@@ -60,12 +62,23 @@ const router = new VueRouter({
     routes,
 });
 
-router.beforeEach((to, from, next) => {
-    // let isHomeChild: boolean = to.matched[0].name === ERouterName.home;
-    // if (isHomeChild && to.name !== ERouterName.login) {
-    //     console.log('!');
-    //     return next({ path: ERouterUrl.login });
-    // }
+router.beforeEach(async (to, from, next) => {
+    let isHomeChild: boolean = to.matched[0].name === ERouterName.home;
+    if (isHomeChild && to.name !== ERouterName.login) {
+        // check auth
+        if (!LocalStorageService.getItem('user')) {
+            return next({ path: ERouterUrl.login });
+        }
+
+        // https://medium.com/summers-life/cros-express%E7%AB%AF%E7%9A%84%E8%A8%AD%E5%AE%9A-f94c9a3199a1
+        try {
+            await Server.get('/check-auth');
+        } catch (e) {
+            if (e.response?.status === 401) {
+                return next({ path: ERouterUrl.login });
+            }
+        }
+    }
 
     next();
 });
