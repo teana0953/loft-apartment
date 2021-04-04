@@ -1,5 +1,5 @@
 <template>
-    <div class="home">
+    <div class="home flex-column">
         <v-navigation-drawer
             v-model="drawer"
             app
@@ -73,9 +73,9 @@
             </template>
         </v-app-bar>
 
-        <v-main>
+        <main flex-grow-1>
             <router-view />
-        </v-main>
+        </main>
     </div>
 </template>
 
@@ -158,4 +158,7 @@ export default class Home extends Vue {
 </script>
 
 <style lang="scss" scoped>
+.home {
+    height: 100%;
+}
 </style>
