@@ -23,7 +23,7 @@
                             </v-toolbar>
 
                             <validation-observer v-slot="{ invalid }">
-                                <form @submit.prevent="login">
+                                <form autocomplete="off" @submit.prevent="login">
                                     <v-card-text>
                                         Please Sign in with:
                                         <validation-provider
@@ -72,23 +72,37 @@
                 </v-layout>
             </v-container>
         </v-main>
+        <loading v-if="isLoading"></loading>
+        <v-snackbar
+            :timeout="5000"
+            :value="loginErrorMsg"
+            absolute
+            bottom
+            color="error"
+            left
+            text
+        >
+            {{ loginErrorMsg }}
+        </v-snackbar>
     </v-app>
 </template>
 
 <script lang="ts">
 import { ERouterUrl } from '@/router/model';
 import { Server, baseUrl } from '../server';
+import Loading from '../components/Loading.vue';
 import { Component, Vue } from 'vue-property-decorator';
-import { Action, Getter, namespace } from 'vuex-class';
+import { Action } from 'vuex-class';
 import { IUser } from '@/store/modules/user';
-import { LocalStorageHelper, LocalStorageService } from '@/helper';
+import { LocalStorageService } from '@/helper';
 import { required, digits, email } from 'vee-validate/dist/rules';
-import { extend, ValidationObserver, ValidationProvider, setInteractionMode } from 'vee-validate';
+import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 
 @Component({
     components: {
         ValidationProvider,
         ValidationObserver,
+        Loading
     },
 })
 export default class Settings extends Vue {
@@ -97,6 +111,9 @@ export default class Settings extends Vue {
 
     private email: string = '';
     private password: string = '';
+
+    private isLoading: boolean = false;
+    private loginErrorMsg: string = '';
 
     created() {
         // validate-related
@@ -115,13 +132,22 @@ export default class Settings extends Vue {
     }
 
     private async login() {
-        let result = await Server.post('/login', {
-            email: this.email,
-            password: this.password,
-        });
+        this.isLoading = true;
 
-        let user: IUser.IUser = result.data.data;
-        this.loginSuccess(user);
+        let result = undefined;
+        try {
+            result = await Server.post('/login', {
+                email: this.email,
+                password: this.password,
+            });
+
+            let user: IUser.IUser = result.data.data;
+            this.loginSuccess(user);
+        } catch (e) {
+            this.loginErrorMsg = `${e}`;
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     private loginSuccess(user: IUser.IUser) {
@@ -153,7 +179,7 @@ export default class Settings extends Vue {
 
     private renderButton() {
         (window as any).gapi.signin2.render('google-signin', {
-            scope: 'profile email',
+            scope: 'profile email https://www.googleapis.com/auth/contacts.readonly',
             width: 120,
             height: 36,
             longtitle: false,
