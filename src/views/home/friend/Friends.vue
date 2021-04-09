@@ -1,5 +1,10 @@
 <template>
     <div class="friends">
+        <div class="overall d-flex justify-center">
+            <span class="mr-auto">Overall, you owe $8,439</span>
+            <v-icon @click="addFriend">mdi-account-plus</v-icon>
+        </div>
+
         <add-friend :isShow.sync="showAddFriend"></add-friend>
         <v-fab-transition>
             <v-btn
@@ -8,10 +13,11 @@
                 dark
                 absolute
                 right
-                fab
-                @click="addFriend"
+                rounded
+                @click="addExpense"
             >
-                <v-icon>mdi-plus</v-icon>
+                <v-icon>mdi-playlist-edit</v-icon>
+                Add Expense
             </v-btn>
         </v-fab-transition>
     </div>
@@ -25,7 +31,7 @@ import { IFriend } from './model';
 
 @Component({
     components: {
-        AddFriend
+        AddFriend,
     },
 })
 export default class Friends extends Vue {
@@ -55,12 +61,15 @@ export default class Friends extends Vue {
     addFriend() {
         this.showAddFriend = true;
     }
+
+    addExpense() {}
 }
 </script>
 
 <style lang="scss" scoped>
 .friends {
     height: 100%;
+    padding: 1rem;
 
     &__fab {
         bottom: 1.6rem;
