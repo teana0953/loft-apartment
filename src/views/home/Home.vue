@@ -73,7 +73,10 @@
             </template>
         </v-app-bar>
 
-        <main flex-grow-1>
+        <main
+            class="home__main"
+            flex-grow-1
+        >
             <router-view />
         </main>
     </div>
@@ -160,5 +163,9 @@ export default class Home extends Vue {
 <style lang="scss" scoped>
 .home {
     height: 100%;
+
+    &__main {
+        height: 100%;
+    }
 }
 </style>
