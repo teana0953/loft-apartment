@@ -23,7 +23,10 @@
                             </v-toolbar>
 
                             <validation-observer v-slot="{ invalid }">
-                                <form autocomplete="off" @submit.prevent="login">
+                                <form
+                                    autocomplete="off"
+                                    @submit.prevent="login"
+                                >
                                     <v-card-text>
                                         Please Sign in with:
                                         <validation-provider
@@ -102,7 +105,7 @@ import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
     components: {
         ValidationProvider,
         ValidationObserver,
-        Loading
+        Loading,
     },
 })
 export default class Settings extends Vue {
