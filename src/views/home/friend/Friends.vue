@@ -62,6 +62,7 @@ import { ERouterName, ERouterUrl } from '@/router/model';
 import { IFriend } from './model';
 import { IUser, IUserFriend } from '@/store/modules/user/models';
 import { baseUrl } from '@/server';
+import { FriendService } from '../../../services';
 
 @Component({
     components: {
@@ -72,13 +73,18 @@ export default class Friends extends Vue {
     private user: IUser = this.$store.getters.user;
     private readonly baseUrl: string = baseUrl;
 
-    private get friends() {
-        return [];
-    }
+    private friends = [];
 
     private showAddFriend: boolean = false;
 
-    mounted() {}
+    async created() {
+        let result = await FriendService.getFriends();
+        this.friends = result.data;
+    }
+
+    mounted() {
+        console.log(this.friends);
+    }
 
     listItemOnClick(event: MouseEvent, friend: IFriend) {
         this.$router.push({
