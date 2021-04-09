@@ -5,6 +5,38 @@
             <v-icon @click="addFriend">mdi-account-plus</v-icon>
         </div>
 
+        <v-list three-line>
+            <template v-for="(friend, index) in friends">
+                <v-list-item
+                    :key="friend.id"
+                    @click="gotoDetail($event, friend)"
+                >
+                    <v-list-item-avatar>
+                        <v-icon
+                            v-if="!friend.photoUrl"
+                            class="grey lighten-1"
+                            dark
+                        >
+                            mdi-account
+                        </v-icon>
+                        <v-img
+                            v-if="friend.photoUrl"
+                            :src="baseUrl + '/' + friend.photoUrl"
+                        ></v-img>
+                    </v-list-item-avatar>
+
+                    <v-list-item-content>
+                        <v-list-item-title v-html="friend.name"></v-list-item-title>
+                        <v-list-item-subtitle v-html="friend.email"></v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-divider
+                    :key="index"
+                    :inset="true"
+                ></v-divider>
+            </template>
+        </v-list>
+
         <add-friend :isShow.sync="showAddFriend"></add-friend>
         <v-fab-transition>
             <v-btn
@@ -16,7 +48,7 @@
                 rounded
                 @click="addExpense"
             >
-                <v-icon>mdi-playlist-edit</v-icon>
+                <v-icon>mdi-playlist-plus</v-icon>
                 Add Expense
             </v-btn>
         </v-fab-transition>
@@ -28,6 +60,8 @@ import { Component, Vue } from 'vue-property-decorator';
 import AddFriend from './AddFriendDialog.vue';
 import { ERouterName, ERouterUrl } from '@/router/model';
 import { IFriend } from './model';
+import { IUser, IUserFriend } from '@/store/modules/user/models';
+import { baseUrl } from '@/server';
 
 @Component({
     components: {
@@ -35,19 +69,16 @@ import { IFriend } from './model';
     },
 })
 export default class Friends extends Vue {
-    private friends: IFriend[] = [];
+    private user: IUser = this.$store.getters.user;
+    private readonly baseUrl: string = baseUrl;
+
+    private get friends() {
+        return [];
+    }
+
     private showAddFriend: boolean = false;
 
-    mounted() {
-        this.friends = [
-            {
-                id: '1',
-                name: 'chien fang wang',
-                email: 'ddd@dd.cc',
-                summaryMoney: 3698,
-            },
-        ];
-    }
+    mounted() {}
 
     listItemOnClick(event: MouseEvent, friend: IFriend) {
         this.$router.push({
@@ -60,6 +91,10 @@ export default class Friends extends Vue {
 
     addFriend() {
         this.showAddFriend = true;
+    }
+
+    gotoDetail(event, friend) {
+        console.log(friend);
     }
 
     addExpense() {}

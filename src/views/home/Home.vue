@@ -13,7 +13,16 @@
                     color="grey darken-1"
                     size="64"
                 >
+                    <v-icon
+                        v-if="!user.photoUrl"
+                        class="grey lighten-1"
+                        size="50"
+                        dark
+                    >
+                        mdi-account
+                    </v-icon>
                     <img
+                        v-if="user.photoUrl"
                         :src="user.photoUrl"
                         alt="user-photo"
                     >

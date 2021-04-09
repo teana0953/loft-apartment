@@ -1,4 +1,4 @@
-import { Mutation } from "vuex";
+import { Mutation } from 'vuex';
 
 export interface IUser {
     id: string;
@@ -6,6 +6,12 @@ export interface IUser {
     email: string;
     photoUrl?: string;
     role: string;
+}
+
+export interface IUserFriend {
+    id: string;
+    name: string;
+    photoUrl?: string;
 }
 
 export interface IMutation {
