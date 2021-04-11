@@ -8,12 +8,6 @@ export interface IUser {
     role: string;
 }
 
-export interface IUserFriend {
-    id: string;
-    name: string;
-    photoUrl?: string;
-}
-
 export interface IMutation {
     SET_USER: Mutation<IUser>;
 }
