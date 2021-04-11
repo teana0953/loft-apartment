@@ -145,7 +145,7 @@ export default class Settings extends Vue {
             });
 
             let user: IUser.IUser = result.data.data;
-            this.loginSuccess(user);
+            this.loginSuccess(user, result.data.token);
         } catch (e) {
             this.loginErrorMsg = `${e}`;
         } finally {
@@ -153,7 +153,7 @@ export default class Settings extends Vue {
         }
     }
 
-    private loginSuccess(user: IUser.IUser) {
+    private loginSuccess(user: IUser.IUser, token: string) {
         user = {
             id: user.id,
             name: user.name,
@@ -165,6 +165,10 @@ export default class Settings extends Vue {
         this.setUser(user);
 
         LocalStorageService.setItem('user', user);
+
+        if (!!token) {
+            LocalStorageService.setItem('token', token);
+        }
 
         this.$router.push(ERouterUrl.home);
     }
@@ -200,12 +204,12 @@ export default class Settings extends Vue {
 
         let result = await Server.post('/signup-google', {
             email: email,
-            name: 'googleDemo',
+            name: googleUser.getBasicProfile().getName(),
             googleIdToken: id_token,
         });
 
         let user: IUser.IUser = result.data.data;
-        this.loginSuccess(user);
+        this.loginSuccess(user, result.data.token);
     }
 
     private onFailure(error: any) {

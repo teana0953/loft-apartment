@@ -154,6 +154,7 @@ export default class Home extends Vue {
             }
 
             LocalStorageService.removeItem('user');
+            LocalStorageService.removeItem('token');
             this.$router.push(ERouterUrl.login);
 
             return;
