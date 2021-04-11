@@ -60,9 +60,10 @@ import { Component, Vue } from 'vue-property-decorator';
 import AddFriend from './AddFriendDialog.vue';
 import { ERouterName, ERouterUrl } from '@/router/model';
 import { IFriend } from './model';
-import { IUser, IUserFriend } from '@/store/modules/user/models';
+import { IUser } from '@/store/modules/user/models';
 import { baseUrl } from '@/server';
 import { FriendService } from '../../../services';
+import { Subscription } from 'rxjs';
 
 @Component({
     components: {
@@ -77,13 +78,29 @@ export default class Friends extends Vue {
 
     private showAddFriend: boolean = false;
 
+    private subscriptions: Subscription = new Subscription();
+
     async created() {
-        let result = await FriendService.getFriends();
-        this.friends = result.data;
+        this.subscriptions.add(
+            FriendService.getFriends$().subscribe({
+                next: (result) => {
+                    this.friends = result.data;
+                },
+                error: (err) => {
+                    console.log(err.response);
+                },
+            }),
+        );
     }
 
     mounted() {
         console.log(this.friends);
+    }
+
+    destroyed() {
+        if (!this.subscriptions.closed) {
+            this.subscriptions.unsubscribe();
+        }
     }
 
     listItemOnClick(event: MouseEvent, friend: IFriend) {
@@ -113,7 +130,7 @@ export default class Friends extends Vue {
     padding: 1rem;
 
     &__fab {
-        bottom: 1.6rem;
+        bottom: 2.5rem;
     }
 }
 </style>
