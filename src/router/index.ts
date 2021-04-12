@@ -4,6 +4,7 @@ import VueRouter, { RouteConfig } from 'vue-router';
 import Home from '../views/home/Home.vue';
 import { ERouterName, ERouterUrl } from './model';
 import { LocalStorageService } from '@/helper';
+import { AuthService } from '@/services';
 
 Vue.use(VueRouter);
 
@@ -71,17 +72,13 @@ router.beforeEach(async (to, from, next) => {
         }
 
         // https://medium.com/summers-life/cros-express%E7%AB%AF%E7%9A%84%E8%A8%AD%E5%AE%9A-f94c9a3199a1
-        try {
-            await Server.get('/check-auth', {
-                headers: {
-                    authorization: `Bearer ${LocalStorageService.getItem('token')}`,
-                },
-            });
-        } catch (e) {
-            if (e.response?.status === 401) {
-                return next({ path: ERouterUrl.login });
-            }
-        }
+        AuthService.checkAuth$().subscribe({
+            error: (e) => {
+                if (e.response?.status === 401) {
+                    return next({ path: ERouterUrl.login });
+                }
+            },
+        });
     }
 
     next();

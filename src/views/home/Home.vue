@@ -96,7 +96,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import { LocalStorageService, ServiceWorkerService } from '@/helper';
 import { ERouterUrl } from '@/router/model';
 import { IUser } from '@/store/modules/user/models';
-import { Server } from '@/server';
+import { AuthService } from '@/services';
 
 @Component({
     components: {},
@@ -144,11 +144,11 @@ export default class Home extends Vue {
 
     async listItemClick(event, item) {
         if (item.text === 'Log out') {
-            try {
-                await Server.get('/logout');
-            } catch (error) {
-                console.log('logout error', error);
-            }
+            AuthService.logout$().subscribe({
+                error: (error) => {
+                    console.log('logout error', error);
+                },
+            });
 
             LocalStorageService.removeItem('user');
             LocalStorageService.removeItem('token');

@@ -100,6 +100,9 @@ import { IUser } from '@/store/modules/user';
 import { LocalStorageService } from '@/helper';
 import { required, digits, email } from 'vee-validate/dist/rules';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
+import { Subscription } from 'rxjs';
+import { AuthService } from '@/services';
+import { finalize } from 'rxjs/operators';
 
 @Component({
     components: {
@@ -117,6 +120,8 @@ export default class Settings extends Vue {
 
     private isLoading: boolean = false;
     private loginErrorMsg: string = '';
+
+    private loginSub: Subscription = new Subscription();
 
     created() {
         // validate-related
@@ -137,20 +142,24 @@ export default class Settings extends Vue {
     private async login() {
         this.isLoading = true;
 
-        let result = undefined;
-        try {
-            result = await Server.post('/login', {
-                email: this.email,
-                password: this.password,
+        this.loginSub = AuthService.login$({
+            email: this.email,
+            password: this.password,
+        })
+            .pipe(
+                finalize(() => {
+                    this.isLoading = false;
+                }),
+            )
+            .subscribe({
+                next: (result) => {
+                    let user: IUser.IUser = result.data;
+                    this.loginSuccess(user, result.token);
+                },
+                error: (e) => {
+                    this.loginErrorMsg = `${e}`;
+                },
             });
-
-            let user: IUser.IUser = result.data.data;
-            this.loginSuccess(user, result.data.token);
-        } catch (e) {
-            this.loginErrorMsg = `${e}`;
-        } finally {
-            this.isLoading = false;
-        }
     }
 
     private loginSuccess(user: IUser.IUser, token: string) {
@@ -200,16 +209,21 @@ export default class Settings extends Vue {
     private async onSignIn(googleUser: any) {
         let id_token = googleUser.getAuthResponse().id_token;
         let email = googleUser.getBasicProfile().getEmail();
-        console.log('token: ' + id_token); // Do not send to your backend! Use an ID token instead.
+        let name = googleUser.getBasicProfile().getName();
 
-        let result = await Server.post('/signup-google', {
+        AuthService.signupGoogle$({
             email: email,
-            name: googleUser.getBasicProfile().getName(),
+            name: name,
             googleIdToken: id_token,
+        }).subscribe({
+            next: (result) => {
+                let user: IUser.IUser = result.data;
+                this.loginSuccess(user, result.token);
+            },
+            error: (error) => {
+                console.log('signup google', error);
+            },
         });
-
-        let user: IUser.IUser = result.data.data;
-        this.loginSuccess(user, result.data.token);
     }
 
     private onFailure(error: any) {
