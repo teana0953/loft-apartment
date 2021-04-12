@@ -62,6 +62,7 @@
                                             v-model="email"
                                             prepend-icon="mdi-email"
                                             label="Email*"
+                                            :readonly="emailReadonly"
                                             :error-messages="errors"
                                         ></v-text-field>
                                     </validation-provider>
@@ -183,7 +184,10 @@ export default class Settings extends Vue {
     setUser: (user: IUser.IUser) => void;
 
     private name: string = '';
+
     private email: string = '';
+    private emailReadonly: boolean = false;
+
     private password: string = '';
     private passwordConfirm: string = '';
     private photo: File = null;
@@ -222,11 +226,14 @@ export default class Settings extends Vue {
                 return `${name} should be less than ${Math.round(schema.size / 1000)} MB!`;
             },
         });
+
+        if (this.$route.params?.token) {
+            this.email = 'ddd@ddd.dd';
+            this.emailReadonly = true;
+        }
     }
 
-    getSize(size) {
-        return size / 1024;
-    }
+    mounted() {}
 
     private signup() {
         this.isLoading = true;

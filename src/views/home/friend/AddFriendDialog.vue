@@ -81,6 +81,8 @@
 import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 import { required, email } from 'vee-validate/dist/rules';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
+import { FriendService } from '@/services';
+import { finalize } from 'rxjs/operators';
 
 @Component({
     components: {
@@ -92,6 +94,8 @@ export default class AddFriendDialog extends Vue {
     @Prop()
     private isShow: boolean = false;
     private _isShow: boolean = false;
+
+    private isLoading: boolean = false;
 
     private email: string = '';
     private name: string = '';
@@ -118,7 +122,24 @@ export default class AddFriendDialog extends Vue {
     }
 
     save() {
-        
+        this.isLoading = true;
+        FriendService.addFriend$({
+            email: this.email,
+            name: this.email,
+        })
+            .pipe(
+                finalize(() => {
+                    this.isLoading = false;
+                    this.reset();
+                    this.close();
+                }),
+            )
+            .subscribe({
+                next: (result) => {
+                    console.log(result);
+                },
+                error: (error) => {},
+            });
     }
 
     reset() {

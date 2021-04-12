@@ -16,6 +16,11 @@ const routes: Array<RouteConfig> = [
     },
     {
         name: ERouterName.signup,
+        path: ERouterUrl.signup + '/:token',
+        component: () => import(/* webpackChunkName: "chunk-signup" */ '../views/Signup.vue'),
+    },
+    {
+        name: ERouterName.signup,
         path: ERouterUrl.signup,
         component: () => import(/* webpackChunkName: "chunk-signup" */ '../views/Signup.vue'),
     },

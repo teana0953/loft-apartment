@@ -8,6 +8,11 @@ interface IUrl {
     getFriends: string;
 }
 
+export interface IAddFriend {
+    email: string;
+    name?: string;
+}
+
 /**
  *
  */
@@ -49,6 +54,47 @@ class FriendHelper extends ApiHelper<IUrl> {
                                 photoUrl: item?.photoUrl,
                             };
                         }),
+                    });
+                    observer.complete();
+                },
+                error: (error) => {
+                    observer.error(error);
+                },
+            });
+
+            return () => sub.unsubscribe();
+        });
+    }
+
+    /**
+     *
+     * @param data
+     * @returns
+     */
+    public addFriend$(data: IAddFriend) {
+        return new Observable<IResponseBase<IUser.IFriend>>((observer) => {
+            let sub = AxiosService.http$({
+                url: this.Url.addFriend,
+                method: 'put',
+                data: data,
+                headers: this.getAuthHeader(),
+            }).subscribe({
+                next: (response) => {
+                    let data: IResponseBase<IUser.IFriend> = response.data;
+                    if (!data) {
+                        observer.error('no any data');
+                    }
+
+                    let user = data.data;
+                    observer.next({
+                        status: data.status,
+                        token: data.token,
+                        data: {
+                            id: user.id,
+                            name: user.name,
+                            email: user.email,
+                            photoUrl: user.photoUrl,
+                        },
                     });
                     observer.complete();
                 },
