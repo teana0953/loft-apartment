@@ -2,6 +2,7 @@
     <v-app>
         <v-main>
             <v-container
+                class="container"
                 fluid
                 fill-height
             >
@@ -14,7 +15,10 @@
                         sm8
                         md4
                     >
-                        <v-card class="elevation-12">
+                        <v-card
+                            class="elevation-12"
+                            min-width="350"
+                        >
                             <v-toolbar
                                 dark
                                 color="primary"
@@ -37,7 +41,7 @@
                                             <v-text-field
                                                 autofocus
                                                 v-model="email"
-                                                prepend-icon="mdi-account"
+                                                prepend-icon="mdi-email"
                                                 label="Email"
                                                 :error-messages="errors"
                                             ></v-text-field>
@@ -66,6 +70,13 @@
                                         >Login</v-btn>
                                         <span class="ml-2 mr-2">or</span>
                                         <div id="google-signin"></div>
+                                        <span class="ml-2 mr-2">or</span>
+                                        <v-btn
+                                            text
+                                            color="primary"
+                                            dark
+                                            @click="gotoSignup"
+                                        >sign up</v-btn>
                                     </v-card-actions>
                                 </form>
                             </validation-observer>
@@ -78,7 +89,7 @@
         <loading v-if="isLoading"></loading>
         <v-snackbar
             :timeout="5000"
-            :value="loginErrorMsg"
+            v-model="showLoginError"
             absolute
             bottom
             color="error"
@@ -120,6 +131,7 @@ export default class Settings extends Vue {
 
     private isLoading: boolean = false;
     private loginErrorMsg: string = '';
+    private showLoginError = false;
 
     private loginSub: Subscription = new Subscription();
 
@@ -139,7 +151,7 @@ export default class Settings extends Vue {
         (window as any).gapi.load('auth2', this.initSignInV2);
     }
 
-    private async login() {
+    private login() {
         this.isLoading = true;
 
         this.loginSub = AuthService.login$({
@@ -158,6 +170,7 @@ export default class Settings extends Vue {
                 },
                 error: (e) => {
                     this.loginErrorMsg = `${e}`;
+                    this.showLoginError = true;
                 },
             });
     }
@@ -206,7 +219,7 @@ export default class Settings extends Vue {
         (window as any).auth2.attachClickHandler(document.getElementById('google-signin'), {}, this.onSignIn);
     }
 
-    private async onSignIn(googleUser: any) {
+    private onSignIn(googleUser: any) {
         let id_token = googleUser.getAuthResponse().id_token;
         let email = googleUser.getBasicProfile().getEmail();
         let name = googleUser.getBasicProfile().getName();
@@ -220,8 +233,9 @@ export default class Settings extends Vue {
                 let user: IUser.IUser = result.data;
                 this.loginSuccess(user, result.token);
             },
-            error: (error) => {
-                console.log('signup google', error);
+            error: (e) => {
+                this.loginErrorMsg = `${e}`;
+                this.showLoginError = true;
             },
         });
     }
@@ -229,8 +243,15 @@ export default class Settings extends Vue {
     private onFailure(error: any) {
         console.log(error);
     }
+
+    private gotoSignup() {
+        this.$router.push(ERouterUrl.signup);
+    }
 }
 </script>
 
 <style lang="scss" scoped>
+.container {
+    overflow: auto;
+}
 </style>
