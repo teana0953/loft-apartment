@@ -13,7 +13,16 @@
                     color="grey darken-1"
                     size="64"
                 >
+                    <v-icon
+                        v-if="!user.photoUrl"
+                        class="grey lighten-1"
+                        size="50"
+                        dark
+                    >
+                        mdi-account
+                    </v-icon>
                     <img
+                        v-if="user.photoUrl"
                         :src="user.photoUrl"
                         alt="user-photo"
                     >
@@ -73,7 +82,10 @@
             </template>
         </v-app-bar>
 
-        <main flex-grow-1>
+        <main
+            class="home__main"
+            flex-grow-1
+        >
             <router-view />
         </main>
     </div>
@@ -81,9 +93,6 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import DataCenter from '../../store/data-center';
-import { concatMap } from 'rxjs/operators';
-import { IStoreModel } from '@/store/models';
 import { LocalStorageService, ServiceWorkerService } from '@/helper';
 import { ERouterUrl } from '@/router/model';
 import { IUser } from '@/store/modules/user/models';
@@ -142,6 +151,7 @@ export default class Home extends Vue {
             }
 
             LocalStorageService.removeItem('user');
+            LocalStorageService.removeItem('token');
             this.$router.push(ERouterUrl.login);
 
             return;
@@ -160,5 +170,9 @@ export default class Home extends Vue {
 <style lang="scss" scoped>
 .home {
     height: 100%;
+
+    &__main {
+        height: 100%;
+    }
 }
 </style>
