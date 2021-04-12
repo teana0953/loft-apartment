@@ -20,7 +20,8 @@ export interface ILogin {
 }
 
 export interface ISignup extends ILogin {
-    photo?: ArrayBuffer;
+    name: string;
+    photo?: File;
     passwordConfirm: string;
 }
 
@@ -93,11 +94,19 @@ class AuthHelper extends ApiHelper<IUrl> {
      * @returns
      */
     public signup$(data: ISignup) {
+        let bodyFormData = new FormData();
+        bodyFormData.append('name', data.name);
+        bodyFormData.append('email', data.email);
+        bodyFormData.append('password', data.password);
+        bodyFormData.append('passwordConfirm', data.passwordConfirm);
+        bodyFormData.append('photo', data.photo);
+
         return new Observable<IResponseBase<IUser.IUser>>((observer) => {
             let sub = AxiosService.http$({
                 url: this.Url.signup,
                 method: 'post',
-                data: data,
+                headers: { 'Content-Type': 'multipart/form-data' },
+                data: bodyFormData,
             }).subscribe({
                 next: (response) => {
                     let data: IResponseBase<IUser.IUser> = response.data;

@@ -1,5 +1,6 @@
 export enum ERouterName {
     login = 'login',
+    signup = 'signup',
     home = 'home',
 
     friends = 'friends',
@@ -19,6 +20,7 @@ export enum ERouterName {
 
 export enum ERouterUrl {
     login = '/login',
+    signup = '/signup',
     home = '/home',
 
     friends = '/friends',
@@ -26,13 +28,12 @@ export enum ERouterUrl {
     friendDetail = '/friends/detail/:id',
     friendExpenseDetail = '/friends/expense/:expenseId',
     friendExpenseDetailEdit = '/friends/expense/:expenseId/edit',
-    
+
     groups = '/groups',
     createGroup = '/groups/create',
     groupDetail = '/groups/detail/:id',
-    
 
     activity = '/activity',
 
-    settings = '/settings'
+    settings = '/settings',
 }

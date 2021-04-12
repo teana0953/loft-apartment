@@ -15,6 +15,11 @@ const routes: Array<RouteConfig> = [
         component: () => import(/* webpackChunkName: "chunk-login" */ '../views/Login.vue'),
     },
     {
+        name: ERouterName.signup,
+        path: ERouterUrl.signup,
+        component: () => import(/* webpackChunkName: "chunk-signup" */ '../views/Signup.vue'),
+    },
+    {
         name: ERouterName.home,
         path: ERouterUrl.home,
         redirect: ERouterUrl.friends,
