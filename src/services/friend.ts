@@ -45,8 +45,11 @@ class FriendHelper extends ApiHelper {
                             };
                         }),
                     });
+                    observer.complete();
                 },
-                error: (error) => {},
+                error: (error) => {
+                    observer.error(error);
+                },
             });
 
             return () => sub.unsubscribe();
