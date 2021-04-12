@@ -1,12 +1,10 @@
 import { LocalStorageService } from '@/helper';
 
-export abstract class ApiHelper {
+export abstract class ApiHelper<T> {
     /**
      * all needed api's url
      */
-    protected Url: {
-        [x: string]: string;
-    } = {};
+    protected Url: T = undefined;
 
     constructor() {}
 

@@ -3,10 +3,15 @@ import { ApiHelper } from '.';
 import { Observable } from 'rxjs';
 import { IResponseBase, IUser } from '@/models';
 
+interface IUrl {
+    addFriend: string;
+    getFriends: string;
+}
+
 /**
  *
  */
-class FriendHelper extends ApiHelper {
+class FriendHelper extends ApiHelper<IUrl> {
     constructor() {
         super();
         this.Url = {
