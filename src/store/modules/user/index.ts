@@ -1,5 +1,5 @@
 import { ActionTree, MutationTree } from 'vuex';
-import { EAction, IMutation, IUser } from './models';
+import { IUser } from './models';
 
 const state: IUser = {
     id: "",
