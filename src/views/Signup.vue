@@ -6,6 +6,7 @@
             dark
         >
             <v-icon
+                v-if="!showGoToLogin"
                 class="mr-3"
                 @click="goback"
             >mdi-arrow-left</v-icon>
@@ -15,6 +16,7 @@
 
         <main>
             <v-container
+                class="justify-center"
                 fluid
                 fill-height
             >
@@ -39,7 +41,7 @@
                                         rules="required"
                                     >
                                         <v-text-field
-                                            autofocus
+                                            :autofocus="!showGoToLogin"
                                             v-model="name"
                                             prepend-icon="mdi-account"
                                             label="Name*"
@@ -62,6 +64,7 @@
                                             v-model="email"
                                             prepend-icon="mdi-email"
                                             label="Email*"
+                                            :disabled="emailReadonly"
                                             :readonly="emailReadonly"
                                             :error-messages="errors"
                                         ></v-text-field>
@@ -79,6 +82,7 @@
                                         rules="required|min:8"
                                     >
                                         <v-text-field
+                                            :autofocus="showGoToLogin"
                                             v-model="password"
                                             prepend-icon="mdi-lock"
                                             label="Password*"
@@ -130,6 +134,12 @@
                         <v-card-actions>
                             <v-spacer></v-spacer>
                             <v-btn
+                                v-if="showGoToLogin"
+                                text
+                                color="success"
+                                @click="gotoLogin"
+                            >Go to Login Page</v-btn>
+                            <v-btn
                                 color="primary"
                                 type="submit"
                                 :disabled="invalid"
@@ -165,7 +175,7 @@ import { LocalStorageService } from '@/helper';
 import { required, digits, email, min, size } from 'vee-validate/dist/rules';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Subscription } from 'rxjs';
-import { AuthService } from '@/services';
+import { AuthService, ISignupWithToken } from '@/services';
 import { finalize } from 'rxjs/operators';
 
 interface IConfirmText {
@@ -183,6 +193,7 @@ export default class Settings extends Vue {
     @Action('setUser')
     setUser: (user: IUser.IUser) => void;
 
+    private id: string = undefined;
     private name: string = '';
 
     private email: string = '';
@@ -191,6 +202,11 @@ export default class Settings extends Vue {
     private password: string = '';
     private passwordConfirm: string = '';
     private photo: File = null;
+
+    private invitedToken: string = '';
+    private get showGoToLogin(): boolean {
+        return !!this.invitedToken;
+    }
 
     private isLoading: boolean = false;
 
@@ -228,8 +244,27 @@ export default class Settings extends Vue {
         });
 
         if (this.$route.params?.token) {
-            this.email = 'ddd@ddd.dd';
-            this.emailReadonly = true;
+            this.invitedToken = this.$route.params.token;
+            this.isLoading = true;
+            AuthService.getInfoByToken$(this.invitedToken)
+                .pipe(
+                    finalize(() => {
+                        this.isLoading = false;
+                    }),
+                )
+                .subscribe({
+                    next: (result) => {
+                        let res: ISignupWithToken = result;
+                        this.id = res.id;
+                        this.email = res.email;
+                        this.emailReadonly = true;
+                        this.name = res.name;
+                    },
+                    error: (e) => {
+                        this.signupErrorMsg = `${e}`;
+                        this.showSignupError = true;
+                    },
+                });
         }
     }
 
@@ -284,6 +319,10 @@ export default class Settings extends Vue {
 
     private goback() {
         this.$router.back();
+    }
+
+    private gotoLogin() {
+        this.$router.push({ path: ERouterUrl.login });
     }
 }
 </script>

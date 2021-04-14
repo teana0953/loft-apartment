@@ -16,7 +16,6 @@
                                 <v-col
                                     cols="12"
                                     sm="6"
-                                    md="4"
                                 >
                                     <validation-provider
                                         v-slot="{ errors }"
@@ -35,7 +34,6 @@
                                 <v-col
                                     cols="12"
                                     sm="6"
-                                    md="4"
                                 >
                                     <v-text-field
                                         v-model="name"
@@ -125,7 +123,7 @@ export default class AddFriendDialog extends Vue {
         this.isLoading = true;
         FriendService.addFriend$({
             email: this.email,
-            name: this.email,
+            name: this.name,
         })
             .pipe(
                 finalize(() => {

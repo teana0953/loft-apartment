@@ -31,6 +31,12 @@ export interface ISignupGoogle {
     googleIdToken: string;
 }
 
+export interface ISignupWithToken {
+    id: string;
+    name: string;
+    email: string;
+}
+
 /**
  *
  */
@@ -223,6 +229,38 @@ class AuthHelper extends ApiHelper<IUrl> {
                     }
 
                     observer.next(data);
+                    observer.complete();
+                },
+                error: (error) => {
+                    observer.error(error);
+                },
+            });
+
+            return () => sub.unsubscribe();
+        });
+    }
+
+    /**
+     * get info by token
+     * @param token
+     */
+    public getInfoByToken$(token: string) {
+        return new Observable<ISignupWithToken>((observer) => {
+            let sub = AxiosService.http$({
+                url: `${this.Url.signup}/${token}`,
+                method: 'get',
+            }).subscribe({
+                next: (response) => {
+                    let data: ISignupWithToken = response.data;
+                    if (!data) {
+                        observer.error('no any data');
+                    }
+
+                    observer.next({
+                        id: data.id,
+                        name: data.name,
+                        email: data.email,
+                    });
                     observer.complete();
                 },
                 error: (error) => {
