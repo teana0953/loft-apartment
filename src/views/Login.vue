@@ -15,10 +15,7 @@
                         sm8
                         md4
                     >
-                        <v-card
-                            class="elevation-12"
-                            min-width="350"
-                        >
+                        <v-card class="elevation-12">
                             <v-toolbar
                                 dark
                                 color="primary"
@@ -63,20 +60,35 @@
                                     </v-card-text>
                                     <v-card-actions>
                                         <v-spacer></v-spacer>
-                                        <v-btn
-                                            color="primary"
-                                            type="submit"
-                                            :disabled="invalid"
-                                        >Login</v-btn>
-                                        <span class="ml-2 mr-2">or</span>
-                                        <div id="google-signin"></div>
-                                        <span class="ml-2 mr-2">or</span>
-                                        <v-btn
-                                            text
-                                            color="primary"
-                                            dark
-                                            @click="gotoSignup"
-                                        >sign up</v-btn>
+                                        <v-col>
+                                            <v-row
+                                                align="center"
+                                                justify="center"
+                                                class="flex-nowrap"
+                                            >
+                                                <v-btn
+                                                    color="primary"
+                                                    type="submit"
+                                                    :disabled="invalid"
+                                                >Login</v-btn>
+                                                <span class="ml-2 mr-2">or</span>
+                                                <div id="google-signin"></div>
+
+                                            </v-row>
+                                            <v-row
+                                                align="center"
+                                                justify="end"
+                                                class="flex-nowrap"
+                                            >
+                                                <span class="ml-2">or</span>
+                                                <v-btn
+                                                    text
+                                                    color="primary"
+                                                    dark
+                                                    @click="gotoSignup"
+                                                >sign up</v-btn>
+                                            </v-row>
+                                        </v-col>
                                     </v-card-actions>
                                 </form>
                             </validation-observer>
