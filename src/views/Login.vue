@@ -160,7 +160,9 @@ export default class Settings extends Vue {
     }
 
     mounted() {
-        (window as any).gapi.load('auth2', this.initSignInV2);
+        if (process.env.NODE_ENV === 'production') {
+            (window as any).gapi.load('auth2', this.initSignInV2);
+        }
     }
 
     private login() {
