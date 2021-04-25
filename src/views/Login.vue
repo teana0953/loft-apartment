@@ -2,6 +2,7 @@
     <v-app>
         <v-main>
             <v-container
+                class="container"
                 fluid
                 fill-height
             >
@@ -37,7 +38,7 @@
                                             <v-text-field
                                                 autofocus
                                                 v-model="email"
-                                                prepend-icon="mdi-account"
+                                                prepend-icon="mdi-email"
                                                 label="Email"
                                                 :error-messages="errors"
                                             ></v-text-field>
@@ -59,13 +60,35 @@
                                     </v-card-text>
                                     <v-card-actions>
                                         <v-spacer></v-spacer>
-                                        <v-btn
-                                            color="primary"
-                                            type="submit"
-                                            :disabled="invalid"
-                                        >Login</v-btn>
-                                        <span class="ml-2 mr-2">or</span>
-                                        <div id="google-signin"></div>
+                                        <v-col>
+                                            <v-row
+                                                align="center"
+                                                justify="center"
+                                                class="flex-nowrap"
+                                            >
+                                                <v-btn
+                                                    color="primary"
+                                                    type="submit"
+                                                    :disabled="invalid"
+                                                >Login</v-btn>
+                                                <span class="ml-2 mr-2">or</span>
+                                                <div id="google-signin"></div>
+
+                                            </v-row>
+                                            <v-row
+                                                align="center"
+                                                justify="end"
+                                                class="flex-nowrap"
+                                            >
+                                                <span class="ml-2">or</span>
+                                                <v-btn
+                                                    text
+                                                    color="primary"
+                                                    dark
+                                                    @click="gotoSignup"
+                                                >sign up</v-btn>
+                                            </v-row>
+                                        </v-col>
                                     </v-card-actions>
                                 </form>
                             </validation-observer>
@@ -78,7 +101,7 @@
         <loading v-if="isLoading"></loading>
         <v-snackbar
             :timeout="5000"
-            :value="loginErrorMsg"
+            v-model="showLoginError"
             absolute
             bottom
             color="error"
@@ -100,6 +123,9 @@ import { IUser } from '@/store/modules/user';
 import { LocalStorageService } from '@/helper';
 import { required, digits, email } from 'vee-validate/dist/rules';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
+import { Subscription } from 'rxjs';
+import { AuthService } from '@/services';
+import { finalize } from 'rxjs/operators';
 
 @Component({
     components: {
@@ -117,6 +143,9 @@ export default class Settings extends Vue {
 
     private isLoading: boolean = false;
     private loginErrorMsg: string = '';
+    private showLoginError = false;
+
+    private loginSub: Subscription = new Subscription();
 
     created() {
         // validate-related
@@ -131,26 +160,33 @@ export default class Settings extends Vue {
     }
 
     mounted() {
-        (window as any).gapi.load('auth2', this.initSignInV2);
+        if (process.env.NODE_ENV === 'production') {
+            (window as any).gapi.load('auth2', this.initSignInV2);
+        }
     }
 
-    private async login() {
+    private login() {
         this.isLoading = true;
 
-        let result = undefined;
-        try {
-            result = await Server.post('/login', {
-                email: this.email,
-                password: this.password,
+        this.loginSub = AuthService.login$({
+            email: this.email,
+            password: this.password,
+        })
+            .pipe(
+                finalize(() => {
+                    this.isLoading = false;
+                }),
+            )
+            .subscribe({
+                next: (result) => {
+                    let user: IUser.IUser = result.data;
+                    this.loginSuccess(user, result.token);
+                },
+                error: (e) => {
+                    this.loginErrorMsg = `${e}`;
+                    this.showLoginError = true;
+                },
             });
-
-            let user: IUser.IUser = result.data.data;
-            this.loginSuccess(user, result.data.token);
-        } catch (e) {
-            this.loginErrorMsg = `${e}`;
-        } finally {
-            this.isLoading = false;
-        }
     }
 
     private loginSuccess(user: IUser.IUser, token: string) {
@@ -197,26 +233,39 @@ export default class Settings extends Vue {
         (window as any).auth2.attachClickHandler(document.getElementById('google-signin'), {}, this.onSignIn);
     }
 
-    private async onSignIn(googleUser: any) {
+    private onSignIn(googleUser: any) {
         let id_token = googleUser.getAuthResponse().id_token;
         let email = googleUser.getBasicProfile().getEmail();
-        console.log('token: ' + id_token); // Do not send to your backend! Use an ID token instead.
+        let name = googleUser.getBasicProfile().getName();
 
-        let result = await Server.post('/signup-google', {
+        AuthService.signupGoogle$({
             email: email,
-            name: googleUser.getBasicProfile().getName(),
+            name: name,
             googleIdToken: id_token,
+        }).subscribe({
+            next: (result) => {
+                let user: IUser.IUser = result.data;
+                this.loginSuccess(user, result.token);
+            },
+            error: (e) => {
+                this.loginErrorMsg = `${e}`;
+                this.showLoginError = true;
+            },
         });
-
-        let user: IUser.IUser = result.data.data;
-        this.loginSuccess(user, result.data.token);
     }
 
     private onFailure(error: any) {
         console.log(error);
     }
+
+    private gotoSignup() {
+        this.$router.push(ERouterUrl.signup);
+    }
 }
 </script>
 
 <style lang="scss" scoped>
+.container {
+    overflow: auto;
+}
 </style>
