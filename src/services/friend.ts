@@ -19,7 +19,7 @@ export interface IAddFriend {
 class FriendHelper extends ApiHelper<IUrl> {
     constructor() {
         super();
-        this.Url = {
+        this.urls = {
             addFriend: '/user/add-friend',
             getFriends: '/user/friends',
         };
@@ -31,7 +31,7 @@ class FriendHelper extends ApiHelper<IUrl> {
     public getFriends$() {
         return new Observable<IResponseBase<IUser.IFriend[]>>((observer) => {
             let sub = AxiosService.http$({
-                url: this.Url.getFriends,
+                url: this.urls.getFriends,
                 method: 'get',
                 headers: this.getAuthHeader(),
             }).subscribe({
@@ -58,7 +58,7 @@ class FriendHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error);
+                    observer.error(error.response.data);
                 },
             });
 
@@ -74,7 +74,7 @@ class FriendHelper extends ApiHelper<IUrl> {
     public addFriend$(data: IAddFriend) {
         return new Observable<IResponseBase<IUser.IFriend>>((observer) => {
             let sub = AxiosService.http$({
-                url: this.Url.addFriend,
+                url: this.urls.addFriend,
                 method: 'put',
                 data: data,
                 headers: this.getAuthHeader(),
@@ -86,9 +86,9 @@ class FriendHelper extends ApiHelper<IUrl> {
                     }
 
                     let user = data.data;
+
                     observer.next({
                         status: data.status,
-                        token: data.token,
                         data: {
                             id: user.id,
                             name: user.name,
@@ -99,7 +99,7 @@ class FriendHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error);
+                    observer.error(error.response.data);
                 },
             });
 

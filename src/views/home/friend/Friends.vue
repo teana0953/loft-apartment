@@ -2,7 +2,7 @@
     <div class="friends">
         <div class="overall d-flex justify-center">
             <span class="mr-auto">Overall, you owe $8,439</span>
-            <v-icon @click="addFriend">mdi-account-plus</v-icon>
+            <v-icon @click="showAddFriend">mdi-account-plus</v-icon>
         </div>
 
         <v-list three-line>
@@ -37,7 +37,11 @@
             </template>
         </v-list>
 
-        <add-friend :isShow.sync="showAddFriend"></add-friend>
+        <add-friend
+            :isShow.sync="isShowAddFriend"
+            @add-friend="addFriend"
+            @error="showError"
+        ></add-friend>
         <v-fab-transition>
             <v-btn
                 class="friends__fab"
@@ -52,6 +56,18 @@
                 Add Expense
             </v-btn>
         </v-fab-transition>
+
+        <v-snackbar
+            :timeout="5000"
+            v-model="isShowError"
+            absolute
+            bottom
+            color="error"
+            left
+            text
+        >
+            {{ errorMsg }}
+        </v-snackbar>
     </div>
 </template>
 
@@ -76,7 +92,9 @@ export default class Friends extends Vue {
 
     private friends = [];
 
-    private showAddFriend: boolean = false;
+    private isShowAddFriend: boolean = false;
+    private errorMsg: string = '';
+    private isShowError: boolean = false;
 
     private subscriptions: Subscription = new Subscription();
 
@@ -112,8 +130,12 @@ export default class Friends extends Vue {
         });
     }
 
-    addFriend() {
-        this.showAddFriend = true;
+    showAddFriend() {
+        this.isShowAddFriend = true;
+    }
+
+    addFriend(friend) {
+        console.log(friend);
     }
 
     gotoDetail(event, friend) {
@@ -121,6 +143,11 @@ export default class Friends extends Vue {
     }
 
     addExpense() {}
+
+    showError(error) {
+        this.isShowError = true;
+        this.errorMsg = error.message;
+    }
 }
 </script>
 
