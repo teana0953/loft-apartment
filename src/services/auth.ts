@@ -86,7 +86,7 @@ class AuthHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error.response.data);
+                    observer.error(error);
                 },
             });
 
@@ -232,7 +232,7 @@ class AuthHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error.response.data);
+                    observer.error(error);
                 },
             });
 
