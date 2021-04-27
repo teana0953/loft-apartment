@@ -42,6 +42,11 @@
             @add-friend="addFriend"
             @error="showError"
         ></add-friend>
+
+        <expense-dialog
+            :isShow.sync="isShowExpense"
+            :friends="friends"
+        ></expense-dialog>
         <v-fab-transition>
             <v-btn
                 class="friends__fab"
@@ -74,6 +79,8 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import AddFriend from './AddFriendDialog.vue';
+import ExpenseDialog from '../ExpenseDialog.vue';
+
 import { ERouterName, ERouterUrl } from '@/router/model';
 import { IFriend } from './model';
 import { IUser } from '@/store/modules/user/models';
@@ -84,6 +91,7 @@ import { Subscription } from 'rxjs';
 @Component({
     components: {
         AddFriend,
+        ExpenseDialog,
     },
 })
 export default class Friends extends Vue {
@@ -96,6 +104,8 @@ export default class Friends extends Vue {
     private errorMsg: string = '';
     private isShowError: boolean = false;
 
+    private isShowExpense: boolean = false;
+
     private subscriptions: Subscription = new Subscription();
 
     async created() {
@@ -105,7 +115,7 @@ export default class Friends extends Vue {
                     this.friends = result.data;
                 },
                 error: (err) => {
-                    console.log(err.response);
+                    this.showError(err);
                 },
             }),
         );
@@ -142,7 +152,9 @@ export default class Friends extends Vue {
         console.log(friend);
     }
 
-    addExpense() {}
+    addExpense() {
+        this.isShowExpense = true;
+    }
 
     showError(error) {
         this.isShowError = true;
