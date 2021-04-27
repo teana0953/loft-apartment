@@ -6,7 +6,10 @@
     >
         <v-card>
             <v-form ref="addFriendForm">
-                <validation-observer v-slot="{ invalid }">
+                <validation-observer
+                    ref="addFriendObserver"
+                    v-slot="{ invalid }"
+                >
                     <v-card-title>
                         <span class="headline">Add Friend</span>
                     </v-card-title>
@@ -144,7 +147,7 @@ export default class AddFriendDialog extends Vue {
 
     reset() {
         (this.$refs.addFriendForm as any).reset();
-        (this.$refs.addFriendForm as any).resetValidation();
+        (this.$refs.addFriendObserver as any).reset();
     }
 
     close() {
