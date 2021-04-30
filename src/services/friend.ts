@@ -20,8 +20,8 @@ class FriendHelper extends ApiHelper<IUrl> {
     constructor() {
         super();
         this.urls = {
-            addFriend: '/user/add-friend',
-            getFriends: '/user/friends',
+            addFriend: '/friend',
+            getFriends: '/friends',
         };
     }
 
@@ -75,7 +75,7 @@ class FriendHelper extends ApiHelper<IUrl> {
         return new Observable<IResponseBase<IUser.IFriend>>((observer) => {
             let sub = AxiosService.http$({
                 url: this.urls.addFriend,
-                method: 'put',
+                method: 'post',
                 data: data,
                 headers: this.getAuthHeader(),
             }).subscribe({
