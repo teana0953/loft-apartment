@@ -109,16 +109,7 @@ export default class Friends extends Vue {
     private subscriptions: Subscription = new Subscription();
 
     async created() {
-        this.subscriptions.add(
-            FriendService.getFriends$().subscribe({
-                next: (result) => {
-                    this.friends = result.data;
-                },
-                error: (err) => {
-                    this.showError(err);
-                },
-            }),
-        );
+        this.getFriends();
     }
 
     mounted() {
@@ -129,6 +120,19 @@ export default class Friends extends Vue {
         if (!this.subscriptions.closed) {
             this.subscriptions.unsubscribe();
         }
+    }
+
+    getFriends(): void {
+        this.subscriptions.add(
+            FriendService.getFriends$().subscribe({
+                next: (result) => {
+                    this.friends = result.data;
+                },
+                error: (err) => {
+                    this.showError(err);
+                },
+            }),
+        );
     }
 
     listItemOnClick(event: MouseEvent, friend: IFriend) {
@@ -144,8 +148,10 @@ export default class Friends extends Vue {
         this.isShowAddFriend = true;
     }
 
-    addFriend(friend) {
-        console.log(friend);
+    addFriend(value) {
+        console.log(value);
+        // refresh
+        this.getFriends();
     }
 
     gotoDetail(event, friend) {
