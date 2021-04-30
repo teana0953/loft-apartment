@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { IResponseBase, IUser } from '@/models';
 
 interface IUrl {
-    addFriend: string;
-    getFriends: string;
+    friend: string;
+    friends: string;
 }
 
 export interface IAddFriend {
@@ -20,8 +20,8 @@ class FriendHelper extends ApiHelper<IUrl> {
     constructor() {
         super();
         this.urls = {
-            addFriend: '/friend',
-            getFriends: '/friends',
+            friend: '/friend',
+            friends: '/friends',
         };
     }
 
@@ -31,7 +31,7 @@ class FriendHelper extends ApiHelper<IUrl> {
     public getFriends$() {
         return new Observable<IResponseBase<IUser.IFriend[]>>((observer) => {
             let sub = AxiosService.http$({
-                url: this.urls.getFriends,
+                url: this.urls.friends,
                 method: 'get',
                 headers: this.getAuthHeader(),
             }).subscribe({
@@ -74,9 +74,49 @@ class FriendHelper extends ApiHelper<IUrl> {
     public addFriend$(data: IAddFriend) {
         return new Observable<IResponseBase<IUser.IFriend>>((observer) => {
             let sub = AxiosService.http$({
-                url: this.urls.addFriend,
+                url: this.urls.friend,
                 method: 'post',
                 data: data,
+                headers: this.getAuthHeader(),
+            }).subscribe({
+                next: (response) => {
+                    let data: IResponseBase<IUser.IFriend> = response.data;
+                    if (!data) {
+                        observer.error('no any data');
+                    }
+
+                    let user = data.data;
+
+                    observer.next({
+                        status: data.status,
+                        data: {
+                            id: user.id,
+                            name: user.name,
+                            email: user.email,
+                            photoUrl: user.photoUrl,
+                        },
+                    });
+                    observer.complete();
+                },
+                error: (error) => {
+                    observer.error(error.response.data);
+                },
+            });
+
+            return () => sub.unsubscribe();
+        });
+    }
+
+    /**
+     *
+     * @param id
+     * @returns
+     */
+    public deleteFriend$(id: string) {
+        return new Observable<IResponseBase<IUser.IFriend>>((observer) => {
+            let sub = AxiosService.http$({
+                url: `${this.urls.friend}/${id}`,
+                method: 'delete',
                 headers: this.getAuthHeader(),
             }).subscribe({
                 next: (response) => {

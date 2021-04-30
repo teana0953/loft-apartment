@@ -7,10 +7,7 @@
 
         <v-list three-line>
             <template v-for="(friend, index) in friends">
-                <v-list-item
-                    :key="friend.id"
-                    @click="gotoDetail($event, friend)"
-                >
+                <v-list-item :key="friend.id">
                     <v-list-item-avatar>
                         <v-icon
                             v-if="!friend.photoUrl"
@@ -29,6 +26,17 @@
                         <v-list-item-title v-html="friend.name"></v-list-item-title>
                         <v-list-item-subtitle v-html="friend.email"></v-list-item-subtitle>
                     </v-list-item-content>
+
+                    <v-list-item-action>
+                        <v-icon @click="gotoDetail($event, friend)">
+                            mdi-view-list
+                        </v-icon>
+                    </v-list-item-action>
+                    <v-list-item-action>
+                        <v-icon @click="showDeleteFriend($event, friend.id)">
+                            mdi-delete
+                        </v-icon>
+                    </v-list-item-action>
                 </v-list-item>
                 <v-divider
                     :key="index"
@@ -42,6 +50,11 @@
             @add-friend="addFriend"
             @error="showError"
         ></add-friend>
+
+        <delete-friend
+            :isShow.sync="isShowDeleteFriend"
+            @confirm="deleteFriend"
+        ></delete-friend>
 
         <expense-dialog
             :isShow.sync="isShowExpense"
@@ -79,6 +92,7 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import AddFriend from './AddFriendDialog.vue';
+import DeleteFriend from './DeleteFriendDialog.vue';
 import ExpenseDialog from '../ExpenseDialog.vue';
 
 import { ERouterName, ERouterUrl } from '@/router/model';
@@ -87,10 +101,12 @@ import { IUser } from '@/store/modules/user/models';
 import { baseUrl } from '@/server';
 import { FriendService } from '../../../services';
 import { Subscription } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 @Component({
     components: {
         AddFriend,
+        DeleteFriend,
         ExpenseDialog,
     },
 })
@@ -103,6 +119,9 @@ export default class Friends extends Vue {
     private isShowAddFriend: boolean = false;
     private errorMsg: string = '';
     private isShowError: boolean = false;
+
+    private isShowDeleteFriend: boolean = false;
+    private deleteFriendId: string = '';
 
     private isShowExpense: boolean = false;
 
@@ -152,6 +171,31 @@ export default class Friends extends Vue {
         console.log(value);
         // refresh
         this.getFriends();
+    }
+
+    showDeleteFriend(event, id: string) {
+        this.isShowDeleteFriend = true;
+        this.deleteFriendId = id;
+        console.log(id);
+    }
+
+    deleteFriend() {
+        this.subscriptions.add(
+            FriendService.deleteFriend$(this.deleteFriendId)
+                .pipe(
+                    finalize(() => {
+                        this.deleteFriendId = '';
+                    }),
+                )
+                .subscribe({
+                    next: (result) => {
+                        this.getFriends();
+                    },
+                    error: (err) => {
+                        this.showError(err);
+                    },
+                }),
+        );
     }
 
     gotoDetail(event, friend) {
