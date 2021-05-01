@@ -8,7 +8,7 @@
             >mdi-account-plus</v-icon>
             <v-icon
                 v-if="showAddGroup"
-                @click="showAddFriendDialog"
+                @click="showCreateGroupDialog"
             >mdi-account-multiple-plus</v-icon>
         </div>
 
@@ -18,6 +18,13 @@
             @error="error"
         ></add-friend>
 
+        <edit-group
+            :isShow.sync="isShowGroup"
+            :friends="friends"
+            @create-group="createGroup"
+            @error="error"
+        ></edit-group>
+
         <loading v-if="isLoading"></loading>
     </div>
 </template>
@@ -26,11 +33,14 @@
 import { Component, Emit, Prop, Vue } from 'vue-property-decorator';
 
 import AddFriend from './AddFriendDialog.vue';
+import EditGroup from './EditGroupDialog.vue';
 import Loading from '../Loading.vue';
+import { IFriend } from '@/models/user';
 
 @Component({
     components: {
         AddFriend,
+        EditGroup,
         Loading,
     },
 })
@@ -45,7 +55,12 @@ export default class UserOverall extends Vue {
     })
     showAddGroup: boolean;
 
+    @Prop()
+    friends: IFriend[];
+
     private isShowAddFriend: boolean = false;
+
+    private isShowGroup: boolean = false;
 
     private isLoading: boolean = false;
 
@@ -55,6 +70,14 @@ export default class UserOverall extends Vue {
 
     addFriend(value) {
         this.$emit('add-friend', value);
+    }
+
+    createGroup(value) {
+        this.$emit('create-group', value);
+    }
+
+    showCreateGroupDialog() {
+        this.isShowGroup = true;
     }
 
     error(e) {
