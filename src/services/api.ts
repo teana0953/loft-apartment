@@ -4,7 +4,7 @@ export abstract class ApiHelper<T> {
     /**
      * all needed api's url
      */
-    protected Url: T = undefined;
+    protected urls: T = undefined;
 
     constructor() {}
 

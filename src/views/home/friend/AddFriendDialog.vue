@@ -6,7 +6,10 @@
     >
         <v-card>
             <v-form ref="addFriendForm">
-                <validation-observer v-slot="{ invalid }">
+                <validation-observer
+                    ref="addFriendObserver"
+                    v-slot="{ invalid }"
+                >
                     <v-card-title>
                         <span class="headline">Add Friend</span>
                     </v-card-title>
@@ -42,7 +45,6 @@
                                 </v-col>
                             </v-row>
                         </v-container>
-                        <small>*indicates required field</small>
                     </v-card-text>
                     <v-card-actions>
                         <v-spacer></v-spacer>
@@ -134,18 +136,22 @@ export default class AddFriendDialog extends Vue {
             )
             .subscribe({
                 next: (result) => {
-                    console.log(result);
+                    this.$emit('add-friend', result);
+                    this.close();
                 },
-                error: (error) => {},
+                error: (e) => {
+                    this.$emit('error', e);
+                },
             });
     }
 
     reset() {
         (this.$refs.addFriendForm as any).reset();
-        (this.$refs.addFriendForm as any).resetValidation();
+        (this.$refs.addFriendObserver as any).reset();
     }
 
     close() {
+        this.reset();
         this.changeIsShow(false);
     }
 }

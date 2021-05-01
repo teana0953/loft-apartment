@@ -43,7 +43,7 @@ export interface ISignupWithToken {
 class AuthHelper extends ApiHelper<IUrl> {
     constructor() {
         super();
-        this.Url = {
+        this.urls = {
             login: '/login',
             logout: '/logout',
             signup: '/signup',
@@ -61,7 +61,7 @@ class AuthHelper extends ApiHelper<IUrl> {
     public login$(data: ILogin) {
         return new Observable<IResponseBase<IUser.IUser>>((observer) => {
             let sub = AxiosService.http$({
-                url: this.Url.login,
+                url: this.urls.login,
                 method: 'post',
                 data: data,
             }).subscribe({
@@ -109,7 +109,7 @@ class AuthHelper extends ApiHelper<IUrl> {
 
         return new Observable<IResponseBase<IUser.IUser>>((observer) => {
             let sub = AxiosService.http$({
-                url: this.Url.signup,
+                url: this.urls.signup,
                 method: 'post',
                 headers: { 'Content-Type': 'multipart/form-data' },
                 data: bodyFormData,
@@ -135,7 +135,7 @@ class AuthHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error);
+                    observer.error(error.response.data);
                 },
             });
 
@@ -151,7 +151,7 @@ class AuthHelper extends ApiHelper<IUrl> {
     public signupGoogle$(data: ISignupGoogle) {
         return new Observable<IResponseBase<IUser.IUser>>((observer) => {
             let sub = AxiosService.http$({
-                url: this.Url.signupGoogle,
+                url: this.urls.signupGoogle,
                 method: 'post',
                 data: data,
             }).subscribe({
@@ -176,7 +176,7 @@ class AuthHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error);
+                    observer.error(error.response.data);
                 },
             });
 
@@ -190,7 +190,7 @@ class AuthHelper extends ApiHelper<IUrl> {
     public logout$() {
         return new Observable<Date>((observer) => {
             let sub = AxiosService.http$({
-                url: this.Url.logout,
+                url: this.urls.logout,
                 method: 'get',
                 headers: this.getAuthHeader(),
             }).subscribe({
@@ -204,7 +204,7 @@ class AuthHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error);
+                    observer.error(error.response.data);
                 },
             });
 
@@ -218,7 +218,7 @@ class AuthHelper extends ApiHelper<IUrl> {
     public checkAuth$() {
         return new Observable<Date>((observer) => {
             let sub = AxiosService.http$({
-                url: this.Url.checkAuth,
+                url: this.urls.checkAuth,
                 method: 'get',
                 headers: this.getAuthHeader(),
             }).subscribe({
@@ -247,7 +247,7 @@ class AuthHelper extends ApiHelper<IUrl> {
     public getInfoByToken$(token: string) {
         return new Observable<ISignupWithToken>((observer) => {
             let sub = AxiosService.http$({
-                url: `${this.Url.signup}/${token}`,
+                url: `${this.urls.signup}/${token}`,
                 method: 'get',
             }).subscribe({
                 next: (response) => {
@@ -264,7 +264,7 @@ class AuthHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error);
+                    observer.error(error.response.data);
                 },
             });
 
