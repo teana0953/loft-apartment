@@ -19,17 +19,32 @@
                     <v-card-text>
                         <v-container>
                             <v-row>
-                                <v-col
-                                    cols="12"
-                                    sm="6"
-                                >
+
+                                <v-col cols="12">
+                                    <validation-provider
+                                        v-slot="{ errors }"
+                                        name="name"
+                                        rules="required"
+                                    >
+                                        <v-text-field
+                                            autofocus
+                                            v-model="name"
+                                            label="Name*"
+                                            required
+                                            :error-messages="errors"
+                                        ></v-text-field>
+                                    </validation-provider>
+
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col cols="12">
                                     <validation-provider
                                         v-slot="{ errors }"
                                         name="friends"
                                         rules="required"
                                     >
                                         <v-autocomplete
-                                            autofocus
                                             auto-select-first
                                             v-model="selectedFriends"
                                             :items="friends"
@@ -88,25 +103,6 @@
 
                                         </v-autocomplete>
                                     </validation-provider>
-                                </v-col>
-
-                                <v-col
-                                    cols="12"
-                                    sm="6"
-                                >
-                                    <validation-provider
-                                        v-slot="{ errors }"
-                                        name="name"
-                                        rules="required"
-                                    >
-                                        <v-text-field
-                                            v-model="name"
-                                            label="Name*"
-                                            required
-                                            :error-messages="errors"
-                                        ></v-text-field>
-                                    </validation-provider>
-
                                 </v-col>
                             </v-row>
                         </v-container>
