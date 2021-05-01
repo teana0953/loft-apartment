@@ -91,7 +91,7 @@ import { Component, Vue } from 'vue-property-decorator';
 
 import UserOverall from '../../../components/user-overall';
 import DeleteFriend from './DeleteFriendDialog.vue';
-import ExpenseDialog from '../ExpenseDialog.vue';
+import ExpenseDialog from '../../../components/ExpenseDialog.vue';
 import Loading from '../../../components/Loading.vue';
 
 import { ERouterName, ERouterUrl } from '@/router/model';

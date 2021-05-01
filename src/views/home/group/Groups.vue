@@ -44,6 +44,25 @@
             @confirm="deleteGroup"
         ></delete-group>
 
+        <expense-dialog
+            :isShow.sync="isShowExpense"
+            :friends="friends"
+        ></expense-dialog>
+        <v-fab-transition>
+            <v-btn
+                class="groups__fab"
+                color="primary"
+                dark
+                absolute
+                right
+                rounded
+                @click="addExpense"
+            >
+                <v-icon>mdi-playlist-plus</v-icon>
+                Add Expense
+            </v-btn>
+        </v-fab-transition>
+
         <loading v-show="isLoading"></loading>
         <v-snackbar
             :timeout="5000"
@@ -65,6 +84,7 @@ import { ERouterName, ERouterUrl } from '@/router/model';
 import { IFriend } from './model';
 
 import UserOverall from '../../../components/user-overall';
+import ExpenseDialog from '../../../components/ExpenseDialog.vue';
 import DeleteGroup from './DeleteGroupDialog.vue';
 
 import Loading from '../../../components/Loading.vue';
@@ -76,6 +96,7 @@ import { finalize } from 'rxjs/operators';
     components: {
         Loading,
         UserOverall,
+        ExpenseDialog,
         DeleteGroup,
     },
 })
@@ -85,6 +106,8 @@ export default class Groups extends Vue {
 
     private isShowDeleteGroup: boolean = false;
     private deleteGroupId: string = '';
+
+    private isShowExpense: boolean = false;
 
     private isLoading: boolean = false;
 
@@ -163,6 +186,10 @@ export default class Groups extends Vue {
                 id: friend.id,
             },
         });
+    }
+
+    addExpense() {
+        this.isShowExpense = true;
     }
 
     showError(error) {

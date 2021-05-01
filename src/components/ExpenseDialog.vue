@@ -165,7 +165,7 @@
 import { Component, Emit, Prop, Vue, Watch } from 'vue-property-decorator';
 import { required, min_value } from 'vee-validate/dist/rules';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
-import { IFriend } from './friend/model';
+import { IFriend } from '../views/home/friend/model';
 import { baseUrl } from '@/server';
 
 @Component({
