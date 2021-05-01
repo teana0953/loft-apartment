@@ -1,9 +1,10 @@
 <template>
     <div class="friends">
-        <div class="overall d-flex justify-center">
-            <span class="mr-auto">Overall, you owe $8,439</span>
-            <v-icon @click="showAddFriend">mdi-account-plus</v-icon>
-        </div>
+        <user-overall
+            :showAddFriend="true"
+            @add-friend="addFriend"
+            @error="showError"
+        ></user-overall>
 
         <v-list three-line>
             <template v-for="(friend, index) in friends">
@@ -45,12 +46,6 @@
             </template>
         </v-list>
 
-        <add-friend
-            :isShow.sync="isShowAddFriend"
-            @add-friend="addFriend"
-            @error="showError"
-        ></add-friend>
-
         <delete-friend
             :isShow.sync="isShowDeleteFriend"
             @confirm="deleteFriend"
@@ -86,14 +81,18 @@
         >
             {{ errorMsg }}
         </v-snackbar>
+
+        <loading v-show="isLoading"></loading>
     </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import AddFriend from './AddFriendDialog.vue';
+
+import UserOverall from '../../../components/user-overall';
 import DeleteFriend from './DeleteFriendDialog.vue';
 import ExpenseDialog from '../ExpenseDialog.vue';
+import Loading from '../../../components/Loading.vue';
 
 import { ERouterName, ERouterUrl } from '@/router/model';
 import { IFriend } from './model';
@@ -105,7 +104,8 @@ import { finalize } from 'rxjs/operators';
 
 @Component({
     components: {
-        AddFriend,
+        Loading,
+        UserOverall,
         DeleteFriend,
         ExpenseDialog,
     },
@@ -116,7 +116,6 @@ export default class Friends extends Vue {
 
     private friends = [];
 
-    private isShowAddFriend: boolean = false;
     private errorMsg: string = '';
     private isShowError: boolean = false;
 
@@ -124,6 +123,8 @@ export default class Friends extends Vue {
     private deleteFriendId: string = '';
 
     private isShowExpense: boolean = false;
+
+    private isLoading: boolean = false;
 
     private subscriptions: Subscription = new Subscription();
 
@@ -163,10 +164,6 @@ export default class Friends extends Vue {
         });
     }
 
-    showAddFriend() {
-        this.isShowAddFriend = true;
-    }
-
     addFriend(value) {
         console.log(value);
         // refresh
@@ -176,14 +173,15 @@ export default class Friends extends Vue {
     showDeleteFriend(event, id: string) {
         this.isShowDeleteFriend = true;
         this.deleteFriendId = id;
-        console.log(id);
     }
 
     deleteFriend() {
+        this.isLoading = true;
         this.subscriptions.add(
             FriendService.deleteFriend$(this.deleteFriendId)
                 .pipe(
                     finalize(() => {
+                        this.isLoading = false;
                         this.deleteFriendId = '';
                     }),
                 )

@@ -99,7 +99,7 @@ class FriendHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error.response.data);
+                    observer.error(error);
                 },
             });
 
@@ -139,7 +139,7 @@ class FriendHelper extends ApiHelper<IUrl> {
                     observer.complete();
                 },
                 error: (error) => {
-                    observer.error(error.response.data);
+                    observer.error(error);
                 },
             });
 

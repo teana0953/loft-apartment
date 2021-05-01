@@ -74,6 +74,8 @@
                 </validation-observer>
             </v-form>
         </v-card>
+
+        <loading v-show="isLoading"></loading>
     </v-dialog>
 </template>
 
@@ -84,10 +86,13 @@ import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import { FriendService } from '@/services';
 import { finalize } from 'rxjs/operators';
 
+import Loading from '../Loading.vue';
+
 @Component({
     components: {
         ValidationObserver,
         ValidationProvider,
+        Loading,
     },
 })
 export default class AddFriendDialog extends Vue {
@@ -158,11 +163,4 @@ export default class AddFriendDialog extends Vue {
 </script>
 
 <style lang="scss" scoped>
-.friends {
-    height: 100%;
-
-    &__fab {
-        bottom: 1.6rem;
-    }
-}
 </style>
