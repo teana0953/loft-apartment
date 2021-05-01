@@ -161,6 +161,8 @@
         >
             {{ signupErrorMsg }}
         </v-snackbar>
+
+        <loading v-show="isLoading"></loading>
     </div>
 </template>
 
