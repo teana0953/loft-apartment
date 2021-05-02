@@ -206,6 +206,90 @@
                                     </validation-provider>
                                 </v-col>
                             </v-row>
+                            <v-row
+                                justify="center"
+                                align="center"
+                            >
+                                <v-col cols="12">
+                                    <span class="mr-2">
+                                        Paid by
+                                    </span>
+                                    <v-btn class="mr-2">{{ payerName }}</v-btn>
+                                    <span class="mr-2">
+                                        and split
+                                    </span>
+                                    <v-icon>mdi-arrow-down</v-icon>
+                                </v-col>
+                            </v-row>
+                            <v-row
+                                justify="center"
+                                align="center"
+                            >
+                                <v-data-table
+                                    v-model="tableData.selected"
+                                    :headers="tableData.headers"
+                                    :items="formData.selectedFriends"
+                                    :show-select="tableData.showSelect"
+                                    :single-select="tableData.singleSelect"
+                                    class="elevation-1"
+                                >
+                                    <template v-slot:body="{ items, headers }">
+                                        <tbody>
+                                            <tr
+                                                v-for="(item,idx,k) in items"
+                                                :key="idx"
+                                            >
+                                                <td
+                                                    v-for="(header,hidx,key) in headers"
+                                                    :key="key"
+                                                >
+                                                    <v-checkbox
+                                                        v-if="tableData.showSelect && hidx === 0"
+                                                        v-model="tableData.selected"
+                                                        :value="item"
+                                                        style="margin:0px;padding:0px"
+                                                        hide-details
+                                                    />
+                                                    <span v-else-if="!header.editConfig">
+                                                        {{item[header.value]}}
+                                                    </span>
+                                                    <v-edit-dialog
+                                                        v-else
+                                                        :return-value.sync="item[header.value + 'Edit']"
+                                                        @save="saveCell(idx, header.value)"
+                                                        @cancel="cancelCell(idx, header.value)"
+                                                        @open="openCell(idx, header.value)"
+                                                        @close="closeCell(idx, header.value)"
+                                                        large
+                                                    >
+                                                        {{item[header.value + 'Edit']}}
+
+                                                        <template v-slot:input>
+
+                                                            <validation-observer ref="editCell">
+                                                                <validation-provider
+                                                                    v-slot="{ errors }"
+                                                                    :name="header.value"
+                                                                    :rules="header.editConfig.rules || ''"
+                                                                >
+                                                                    <v-text-field
+                                                                        :type="header.editConfig.type || 'text'"
+                                                                        v-model="item[header.value + 'Edit']"
+                                                                        label="Edit"
+                                                                        single-line
+                                                                        :error-messages="errors"
+                                                                    ></v-text-field>
+                                                                </validation-provider>
+                                                            </validation-observer>
+
+                                                        </template>
+                                                    </v-edit-dialog>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </template>
+                                </v-data-table>
+                            </v-row>
                         </v-container>
                     </v-card-text>
                     <v-card-actions>
@@ -242,7 +326,7 @@
 <script lang="ts">
 import { Component, Emit, Prop, Vue, Watch } from 'vue-property-decorator';
 import { required, min_value } from 'vee-validate/dist/rules';
-import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
+import { extend, ValidationObserver, ValidationProvider, validate } from 'vee-validate';
 import { IFriend } from '../views/home/friend/model';
 import { baseUrl } from '@/server';
 
@@ -265,6 +349,36 @@ interface IFormData {
     timeMenu: boolean;
 }
 
+interface ITableHeaderEditConfig {
+    type: string;
+    rules?: string;
+}
+
+interface ITableHeader<T> {
+    text: string;
+    value: keyof T;
+    editConfig?: ITableHeaderEditConfig;
+    align?: 'start' | 'center' | 'end';
+    sortable?: boolean;
+    filterable?: boolean;
+    groupable?: boolean;
+    divider?: boolean;
+    class?: string | string[];
+    cellClass?: string | string[];
+    width?: string | number;
+    filter?: (value: any, search: string, item: any) => boolean;
+    sort?: (a: any, b: any) => number;
+}
+
+interface ITableConfig<T> {
+    singleSelect: boolean;
+    selected: T[];
+    headers: ITableHeader<T>[];
+    items: T[];
+    itemKey?: string;
+    showSelect?: boolean;
+}
+
 @Component({
     components: {
         ValidationObserver,
@@ -285,6 +399,7 @@ export default class ExpenseDialog extends Vue {
     friends: IFriend[];
 
     private readonly baseUrl: string = baseUrl;
+    private user: IUser = this.$store.getters.user;
 
     private isLoading: boolean = false;
 
@@ -293,10 +408,10 @@ export default class ExpenseDialog extends Vue {
         name: '',
         cost: 0,
         payer: {
-            id: '',
-            name: '',
-            email: '',
-            imageUrl: '',
+            id: this.user.id,
+            name: this.user.name,
+            email: this.user.email,
+            imageUrl: this.user.imageUrl,
             splitCost: 0,
         },
         selectedFriends: [],
@@ -306,10 +421,40 @@ export default class ExpenseDialog extends Vue {
         timeMenu: false,
     };
     private formData: IFormData = { ...this.formDataDefault };
+    private get payerName(): string {
+        if (this.formData.payer.id === this.user.id) {
+            return 'You';
+        }
+
+        return this.formData.payer.name;
+    }
     private get computedDateFormatted(): string {
         return this.formatDate(this.formData.date);
     }
     //#endregion Form fields
+
+    //#region Table for split
+    private tableData: ITableConfig<IUser> = {
+        singleSelect: false,
+        selected: [],
+        headers: [
+            {
+                text: 'Name',
+                value: 'name',
+            },
+            {
+                text: 'Split Cost',
+                value: 'splitCost',
+                editConfig: {
+                    type: 'number',
+                    rules: 'required|min_value:0.01',
+                },
+            },
+        ],
+        items: this.formData.selectedFriends,
+        showSelect: true,
+    };
+    //#endregion Table for split
 
     private get cardTitle(): string {
         return `${!!this.objectId ? 'Edit' : 'Add'} Expense`;
@@ -359,6 +504,35 @@ export default class ExpenseDialog extends Vue {
         const [year, month, day] = date.split('-');
         return `${year}/${month}/${day}`;
     }
+
+    //#region Table
+    saveCell(idx, key) {
+        let item = this.formData.selectedFriends[idx];
+        item['save'] = true;
+    }
+    cancelCell(idx, key) {}
+    openCell(idx, key) {
+        let item = this.formData.selectedFriends[idx];
+        item[`${key}Edit`] = item[key] || 0;
+    }
+    async closeCell(idx, key) {
+        let item = this.formData.selectedFriends[idx];
+
+        if (item['save']) {
+            console.log(this.$refs);
+            let valid = await (this.$refs.editCell[0] as any).validate();
+            if (valid) {
+                item[key] = item[`${key}Edit`];
+            } else {
+                item[`${key}Edit`] = item[key];
+            }
+        } else {
+            item[`${key}Edit`] = item[key];
+        }
+
+        delete item['save'];
+    }
+    //#endregion Table
 
     save() {
         console.log(this.formData.selectedFriends, this.formData.time);
