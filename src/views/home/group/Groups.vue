@@ -84,7 +84,7 @@ import { ERouterName, ERouterUrl } from '@/router/model';
 import { IFriend } from './model';
 
 import UserOverall from '../../../components/user-overall';
-import ExpenseDialog from '../../../components/ExpenseDialog.vue';
+import ExpenseDialog from '../../../components/expense';
 import DeleteGroup from './DeleteGroupDialog.vue';
 
 import Loading from '../../../components/Loading.vue';

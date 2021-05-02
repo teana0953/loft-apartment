@@ -31,7 +31,8 @@
                                         <v-autocomplete
                                             autofocus
                                             auto-select-first
-                                            v-model="formData.selectedFriends"
+                                            :value="formData.selectedFriends"
+                                            @input="selectedFriendsChanged"
                                             :items="friends"
                                             item-text="name"
                                             chips
@@ -228,11 +229,31 @@
                                 <v-data-table
                                     v-model="tableData.selected"
                                     :headers="tableData.headers"
-                                    :items="formData.selectedFriends"
+                                    :items="items"
                                     :show-select="tableData.showSelect"
                                     :single-select="tableData.singleSelect"
                                     class="elevation-1"
                                 >
+                                    <template v-slot:top>
+                                        <v-toolbar flat>
+                                            <v-toolbar-title>Split</v-toolbar-title>
+                                            <v-divider
+                                                class="mx-4"
+                                                inset
+                                                vertical
+                                            ></v-divider>
+                                            <v-spacer></v-spacer>
+                                            <v-btn
+                                                color="primary"
+                                                dark
+                                                class="mb-2"
+                                                @click="splitEqually"
+                                            >
+                                                Equally
+                                            </v-btn>
+                                        </v-toolbar>
+                                    </template>
+
                                     <template v-slot:body="{ items, headers }">
                                         <tbody>
                                             <tr
@@ -273,8 +294,17 @@
                                                                     :rules="header.editConfig.rules || ''"
                                                                 >
                                                                     <v-text-field
+                                                                        v-if="header.editConfig.type !== 'number'"
                                                                         :type="header.editConfig.type || 'text'"
                                                                         v-model="item[header.value + 'Edit']"
+                                                                        label="Edit"
+                                                                        single-line
+                                                                        :error-messages="errors"
+                                                                    ></v-text-field>
+                                                                    <v-text-field
+                                                                        v-else
+                                                                        type="number"
+                                                                        v-model.number="item[header.value + 'Edit']"
                                                                         label="Edit"
                                                                         single-line
                                                                         :error-messages="errors"
@@ -327,7 +357,7 @@
 import { Component, Emit, Prop, Vue, Watch } from 'vue-property-decorator';
 import { required, min_value } from 'vee-validate/dist/rules';
 import { extend, ValidationObserver, ValidationProvider, validate } from 'vee-validate';
-import { IFriend } from '../views/home/friend/model';
+import { IFriend } from '../../views/home/friend/model';
 import { baseUrl } from '@/server';
 
 interface IUser {
@@ -336,6 +366,7 @@ interface IUser {
     email: string;
     imageUrl: string;
     splitCost: number;
+    splitCostEdit: number;
 }
 
 interface IFormData {
@@ -400,6 +431,13 @@ export default class ExpenseDialog extends Vue {
 
     private readonly baseUrl: string = baseUrl;
     private user: IUser = this.$store.getters.user;
+    private get userCopy(): IUser {
+        return {
+            ...this.user,
+            splitCost: 0,
+            splitCostEdit: 0,
+        };
+    }
 
     private isLoading: boolean = false;
 
@@ -413,6 +451,7 @@ export default class ExpenseDialog extends Vue {
             email: this.user.email,
             imageUrl: this.user.imageUrl,
             splitCost: 0,
+            splitCostEdit: 0,
         },
         selectedFriends: [],
         date: new Date().toISOString().substr(0, 10),
@@ -436,7 +475,7 @@ export default class ExpenseDialog extends Vue {
     //#region Table for split
     private tableData: ITableConfig<IUser> = {
         singleSelect: false,
-        selected: [],
+        selected: [this.userCopy],
         headers: [
             {
                 text: 'Name',
@@ -451,9 +490,13 @@ export default class ExpenseDialog extends Vue {
                 },
             },
         ],
-        items: this.formData.selectedFriends,
+        items: this.items,
         showSelect: true,
     };
+
+    private get items(): IUser[] {
+        return [this.userCopy].concat(this.formData.selectedFriends);
+    }
     //#endregion Table for split
 
     private get cardTitle(): string {
@@ -505,22 +548,32 @@ export default class ExpenseDialog extends Vue {
         return `${year}/${month}/${day}`;
     }
 
+    selectedFriendsChanged(value: IUser[]) {
+        // add
+        if (value.length > this.formData.selectedFriends.length) {
+            value[value.length - 1].splitCost = 0;
+            value[value.length - 1].splitCostEdit = 0;
+            this.formData.selectedFriends = value;
+        }
+    }
+
     //#region Table
+    splitEqually() {}
+
     saveCell(idx, key) {
-        let item = this.formData.selectedFriends[idx];
+        let item = this.items[idx];
         item['save'] = true;
     }
     cancelCell(idx, key) {}
     openCell(idx, key) {
-        let item = this.formData.selectedFriends[idx];
+        let item = this.items[idx];
         item[`${key}Edit`] = item[key] || 0;
     }
     async closeCell(idx, key) {
-        let item = this.formData.selectedFriends[idx];
+        let item = this.items[idx];
 
         if (item['save']) {
-            console.log(this.$refs);
-            let valid = await (this.$refs.editCell[0] as any).validate();
+            let valid = await (this.$refs.editCell[idx] as any).validate();
             if (valid) {
                 item[key] = item[`${key}Edit`];
             } else {
