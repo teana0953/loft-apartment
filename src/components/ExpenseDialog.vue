@@ -31,7 +31,7 @@
                                         <v-autocomplete
                                             autofocus
                                             auto-select-first
-                                            v-model="selectedFriends"
+                                            v-model="formData.selectedFriends"
                                             :items="friends"
                                             item-text="name"
                                             chips
@@ -47,7 +47,7 @@
                                                     :input-value="data.selected"
                                                     close
                                                     @click="data.select"
-                                                    @click:close="remove(data.item)"
+                                                    @click:close="removeFriend(data.item)"
                                                 >
                                                     <v-avatar left>
                                                         <v-icon
@@ -101,7 +101,7 @@
                                         rules="required"
                                     >
                                         <v-text-field
-                                            v-model="description"
+                                            v-model="formData.name"
                                             label="Description*"
                                             required
                                             :error-messages="errors"
@@ -119,12 +119,90 @@
                                     >
                                         <v-text-field
                                             type="number"
-                                            v-model="cost"
+                                            v-model="formData.cost"
                                             prefix="$"
-                                            label="cost"
+                                            label="Cost*"
                                             required
                                             :error-messages="errors"
                                         ></v-text-field>
+                                    </validation-provider>
+                                </v-col>
+                            </v-row>
+                            <v-row>
+                                <v-col
+                                    cols="12"
+                                    sm="6"
+                                >
+                                    <validation-provider
+                                        v-slot="{ errors }"
+                                        name="date"
+                                        rules="required"
+                                    >
+                                        <v-menu
+                                            v-model="formData.dateMenu"
+                                            :close-on-content-click="false"
+                                            transition="scale-transition"
+                                            offset-y
+                                            max-width="290px"
+                                            min-width="auto"
+                                        >
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-text-field
+                                                    :value="computedDateFormatted"
+                                                    label="Date*"
+                                                    prepend-icon="mdi-calendar"
+                                                    readonly
+                                                    v-bind="attrs"
+                                                    v-on="on"
+                                                    :error-messages="errors"
+                                                ></v-text-field>
+                                            </template>
+                                            <v-date-picker
+                                                v-model="formData.date"
+                                                color="primary lighten-1"
+                                                no-title
+                                                @input="formData.dateMenu = false"
+                                            ></v-date-picker>
+                                        </v-menu>
+                                    </validation-provider>
+                                </v-col>
+                                <v-col
+                                    cols="12"
+                                    sm="6"
+                                >
+                                    <validation-provider
+                                        v-slot="{ errors }"
+                                        name="time"
+                                        rules="required"
+                                    >
+                                        <v-menu
+                                            ref="timeMenu"
+                                            v-model="formData.timeMenu"
+                                            :close-on-content-click="false"
+                                            :nudge-right="40"
+                                            :return-value.sync="formData.time"
+                                            transition="scale-transition"
+                                            offset-y
+                                            max-width="290px"
+                                            min-width="290px"
+                                        >
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-text-field
+                                                    v-model="formData.time"
+                                                    label="Time*"
+                                                    prepend-icon="mdi-clock-time-four-outline"
+                                                    readonly
+                                                    v-bind="attrs"
+                                                    v-on="on"
+                                                ></v-text-field>
+                                            </template>
+                                            <v-time-picker
+                                                v-if="formData.timeMenu"
+                                                v-model="formData.time"
+                                                full-width
+                                                @click:minute="$refs.timeMenu.save(time)"
+                                            ></v-time-picker>
+                                        </v-menu>
                                     </validation-provider>
                                 </v-col>
                             </v-row>
@@ -168,6 +246,25 @@ import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import { IFriend } from '../views/home/friend/model';
 import { baseUrl } from '@/server';
 
+interface IUser {
+    id: string;
+    name: string;
+    email: string;
+    imageUrl: string;
+    splitCost: number;
+}
+
+interface IFormData {
+    name: string;
+    cost: number;
+    payer: IUser;
+    selectedFriends: IUser[];
+    date: string;
+    dateMenu: boolean;
+    time: string;
+    timeMenu: boolean;
+}
+
 @Component({
     components: {
         ValidationObserver,
@@ -189,15 +286,40 @@ export default class ExpenseDialog extends Vue {
 
     private readonly baseUrl: string = baseUrl;
 
-    private selectedFriends: IFriend[] = [];
-
     private isLoading: boolean = false;
 
-    private description: string = '';
-    private cost: number = 0;
+    //#region Form fields
+    private formDataDefault: IFormData = {
+        name: '',
+        cost: 0,
+        payer: {
+            id: '',
+            name: '',
+            email: '',
+            imageUrl: '',
+            splitCost: 0,
+        },
+        selectedFriends: [],
+        date: new Date().toISOString().substr(0, 10),
+        dateMenu: false,
+        time: new Date().toTimeString().substr(0, 5),
+        timeMenu: false,
+    };
+    private formData: IFormData = { ...this.formDataDefault };
+    private get computedDateFormatted(): string {
+        return this.formatDate(this.formData.date);
+    }
+    //#endregion Form fields
 
     private get cardTitle(): string {
         return `${!!this.objectId ? 'Edit' : 'Add'} Expense`;
+    }
+
+    @Watch('isShow')
+    onIsShowChanged(value) {
+        if (!value) return;
+
+        this.initFormData();
     }
 
     created() {
@@ -216,18 +338,30 @@ export default class ExpenseDialog extends Vue {
         this._isShow = this.isShow;
     }
 
+    initFormData(data?: IFormData) {
+        if (!data) {
+            this.formData = { ...this.formDataDefault };
+        }
+    }
+
     @Emit('update:isShow')
     changeIsShow(value: boolean) {
         this._isShow = value;
     }
 
-    remove(item: IFriend) {
-        const index = (this.selectedFriends || []).findIndex((x) => x.id === item.id);
-        if (index >= 0) this.selectedFriends.splice(index, 1);
+    removeFriend(item: IFriend) {
+        const index = (this.formData.selectedFriends || []).findIndex((x) => x.id === item.id);
+        if (index >= 0) this.formData.selectedFriends.splice(index, 1);
+    }
+
+    formatDate(date) {
+        if (!date) return null;
+        const [year, month, day] = date.split('-');
+        return `${year}/${month}/${day}`;
     }
 
     save() {
-        console.log(this.selectedFriends);
+        console.log(this.formData.selectedFriends, this.formData.time);
         // this.isLoading = true;
         // FriendService.addFriend$({
         //     email: this.email,
@@ -252,7 +386,6 @@ export default class ExpenseDialog extends Vue {
     }
 
     reset() {
-        (this.$refs.expenseForm as any).reset();
         (this.$refs.expenseObserver as any).reset();
     }
 
