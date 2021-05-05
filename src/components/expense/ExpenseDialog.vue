@@ -31,8 +31,8 @@
                                         <v-autocomplete
                                             autofocus
                                             auto-select-first
-                                            v-model="formData.selectedFriends"
-                                            @change="selectedFriendsChanged"
+                                            :value="formData.selectedFriends"
+                                            @input="selectedFriendsChanged"
                                             :items="friends"
                                             item-text="name"
                                             chips
@@ -226,7 +226,11 @@
                                 justify="center"
                                 align="center"
                             >
-                                <split-table :users="tableUsers"></split-table>
+                                <split-table
+                                    :key="splitTableKey"
+                                    :users="tableUsers"
+                                    :cost="formData.cost"
+                                ></split-table>
                             </v-row>
                         </v-container>
                     </v-card-text>
@@ -348,6 +352,11 @@ export default class ExpenseDialog extends Vue {
 
     private tableUsers: IUser[] = [];
 
+    /**
+     * if change can rerender split table
+     */
+    private splitTableKey: boolean = false;
+
     private get cardTitle(): string {
         return `${!!this.objectId ? 'Edit' : 'Add'} Expense`;
     }
@@ -377,14 +386,17 @@ export default class ExpenseDialog extends Vue {
 
     init() {
         this.initFormData();
-        this.tableUsers.push({
-            id: this.user.id,
-            name: this.user.name,
-            email: this.user.email,
-            imageUrl: this.user.imageUrl,
-            splitCost: 0,
-            splitCostEdit: 0,
-        });
+        this.splitTableKey = !this.splitTableKey;
+        this.tableUsers = [
+            {
+                id: this.user.id,
+                name: this.user.name,
+                email: this.user.email,
+                imageUrl: this.user.imageUrl,
+                splitCost: 0,
+                splitCostEdit: 0,
+            },
+        ];
     }
 
     initFormData(data?: IFormData) {
@@ -401,6 +413,16 @@ export default class ExpenseDialog extends Vue {
     removeFriend(item: IFriend) {
         const index = (this.formData.selectedFriends || []).findIndex((x) => x.id === item.id);
         if (index >= 0) this.formData.selectedFriends.splice(index, 1);
+        this.tableUsers = [
+            {
+                id: this.user.id,
+                name: this.user.name,
+                email: this.user.email,
+                imageUrl: this.user.imageUrl,
+                splitCost: 0,
+                splitCostEdit: 0,
+            },
+        ].concat(this.formData.selectedFriends);
     }
 
     formatDate(date) {
@@ -409,18 +431,19 @@ export default class ExpenseDialog extends Vue {
         return `${year}/${month}/${day}`;
     }
 
-    selectedFriendsChanged(value: IUser[], ...args) {
-        console.log(value, args);
-        // add
-        if (value.length > this.formData.selectedFriends.length) {
-            let added: IUser = value[value.length - 1];
-            this.tableUsers.push({
-                ...added,
+    selectedFriendsChanged(value: IUser[]) {
+        console.log(value);
+        this.formData.selectedFriends = value;
+        this.tableUsers = [
+            {
+                id: this.user.id,
+                name: this.user.name,
+                email: this.user.email,
+                imageUrl: this.user.imageUrl,
                 splitCost: 0,
                 splitCostEdit: 0,
-            });
-        } else {
-        }
+            },
+        ].concat(value);
     }
 
     save() {

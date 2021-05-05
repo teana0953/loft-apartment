@@ -98,7 +98,7 @@
 import { Component, Emit, Prop, Vue, Watch } from 'vue-property-decorator';
 import { required, min_value } from 'vee-validate/dist/rules';
 import { extend, ValidationObserver, ValidationProvider, validate } from 'vee-validate';
-import { IFriend } from '../../views/home/friend/model';
+import { Utility } from '@/helper';
 
 interface IUser {
     id: string;
@@ -151,10 +151,16 @@ export default class SplitTable extends Vue {
     private _users: IUser[];
 
     @Watch('users')
-    onUsersChanged(value) {
+    onUsersChanged(value: IUser[]) {
         console.log('user change', value);
-        this._users = Object.assign(this._users, value);
+
+        this.addOrRemoveUser(value);
     }
+
+    @Prop({
+        default: 0,
+    })
+    cost: number;
 
     //#region Table for split
     private tableData: ITableConfig<IUser> = {
@@ -191,20 +197,50 @@ export default class SplitTable extends Vue {
             message: '{_field_} should be larger than 0',
         });
 
-        this._users = this.users || [];
-
-        this.initTableData();
+        this.init();
     }
 
     mounted() {}
 
-    //#region Table
+    init() {
+        this._users = [];
+        this.users.forEach((user) => {
+            user.splitCost = 0;
+            user.splitCostEdit = 0;
+            this._users.push(user);
+            this.tableData.selected.push(user);
+        });
+
+        this.initTableData();
+    }
+
     initTableData() {
         this.tableData.items = this._users;
     }
 
-    splitEqually() {}
+    splitEqually() {
+        this.initSplitCost();
 
+        let count: number = this.tableData.selected.length;
+        let equal: number = Utility.Round(this.cost / count, 2);
+        this.tableData.selected.forEach((user) => {
+            user.splitCost = equal;
+            user.splitCostEdit = equal;
+        });
+    }
+
+    /**
+     * init split cost
+     * @description let all user split cost to 0
+     */
+    initSplitCost() {
+        this._users.forEach((user) => {
+            user.splitCost = 0;
+            user.splitCostEdit = 0;
+        });
+    }
+
+    //#region v-edit-dialog
     saveCell(idx, key) {
         let item = this._users[idx];
         item['save'] = true;
@@ -232,7 +268,38 @@ export default class SplitTable extends Vue {
 
         delete item['save'];
     }
-    //#endregion Table
+    //#endregion v-edit-dialog
+
+    /**
+     * add or remove user
+     */
+    addOrRemoveUser(newValue: IUser[]): void {
+        let currentValue = this._users;
+        let isAdd: boolean = newValue.length > currentValue.length;
+        if (isAdd) {
+            let lastItem = newValue[newValue.length - 1];
+            let newItem = {
+                ...lastItem,
+                splitCost: 0,
+                splitCostEdit: 0,
+            };
+            currentValue.push(newItem);
+            this.tableData.selected.push(newItem);
+        } else {
+            for (let i = 0; i < currentValue.length; i++) {
+                let item = currentValue[i];
+                let index = newValue.findIndex((user) => user.id === item.id);
+                if (index < 0) {
+                    currentValue.splice(i, 1);
+                    let selectedIndex = this.tableData.selected.findIndex((user) => user.id === item.id);
+                    if (selectedIndex > -1) {
+                        this.tableData.selected.splice(selectedIndex, 1);
+                    }
+                    break;
+                }
+            }
+        }
+    }
 }
 </script>
 
